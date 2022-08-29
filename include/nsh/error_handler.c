@@ -1,0 +1,4 @@
+#ifndef NSH_ERROR_HANDLER_H
+#define NSH_ERROR_HANDLER_H
+
+#endif
