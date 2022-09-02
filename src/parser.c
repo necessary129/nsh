@@ -1,3 +1,4 @@
+#include "nsh/error_handler.h"
 #include <stdlib.h>
 #include <string.h>
 
@@ -26,7 +27,7 @@ void parseCommand(const char * cmd){
 	Command c = {0};
 	arg = strtok_r(cmdcopy, " \t", &saveptr);
 	c.name = strdup(arg);
-	c.args = safeMalloc(10 * sizeof(char *));
+	c.args = checkAlloc(malloc(10 * sizeof(char *)));
 	while ((arg = strtok_r(NULL, " \t", &saveptr)))
 		c.args[c.nargs++] = strdup(arg);
 	runCommand(&c);

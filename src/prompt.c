@@ -1,3 +1,4 @@
+#include "nsh/error_handler.h"
 #include <nsh/main.h>
 #include <nsh/prompt.h>
 #include <stddef.h>
@@ -15,19 +16,19 @@ void setPrompt(){
 	const char * cwd = shellState.currentdir;
 	if (strstr(cwd, shellState.homedir) == cwd){
 		const char * pathAfterHome = cwd + strlen(shellState.homedir);
-		shellState.promptdir = realloc(shellState.promptdir, 1 + strlen(pathAfterHome) + 12);
+		shellState.promptdir = checkAlloc(realloc(shellState.promptdir, 1 + strlen(pathAfterHome) + 12));
 		sprintf(shellState.promptdir, "~%s", pathAfterHome);
 	} else {
-		shellState.promptdir = realloc(shellState.promptdir, strlen(cwd)+1);
+		shellState.promptdir = checkAlloc(realloc(shellState.promptdir, strlen(cwd)+1));
 		strcpy(shellState.promptdir, cwd);
 	}
-	shellState.prompt = realloc(shellState.prompt, 1 + strlen(shellState.username)  + 1 + strlen(shellState.hostname) + 1 + strlen(shellState.promptdir) + 3);
+	shellState.prompt = checkAlloc(realloc(shellState.prompt, 1 + strlen(shellState.username)  + 1 + strlen(shellState.hostname) + 1 + strlen(shellState.promptdir) + 3));
 	sprintf(shellState.prompt, "<%s@%s:%s> ", shellState.username, shellState.hostname, shellState.promptdir);
 }
 
 int interpret(){
 	if (!line){
-		line = safeMalloc(MAX_LINE_LENGTH);
+		line = checkAlloc(malloc(MAX_LINE_LENGTH));
 	}
 	int nread;
 	size_t maxLen = MAX_LINE_LENGTH;

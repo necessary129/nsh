@@ -10,22 +10,15 @@
 
 #include <nsh/prompt.h>
 #include <nsh/utils.h>
+#include <nsh/error_handler.h>
 
-void *safeMalloc(size_t size) {
-  void *ptr = malloc(size);
-  if (ptr == NULL) {
-    perror("Malloc Failed.");
-    exit(EXIT_FAILURE);
-  }
-  return ptr;
-}
 
 void setCwd() {
   size_t bufsize = 4096;
-  char *buffer = safeMalloc(bufsize);
+  char *buffer = checkAlloc(malloc(bufsize));
   while (!(buffer = getcwd(buffer, bufsize))) {
     bufsize <<= 1;
-    buffer = realloc(buffer, bufsize);
+    buffer = checkAlloc(realloc(buffer, bufsize));
   }
   if (shellState.currentdir) {
     if (strcmp(buffer, shellState.currentdir)) {
@@ -43,7 +36,7 @@ void setCwd() {
 char *resolveTilde(char *s) {
   char *newPath;
   if (s[0] == '~') {
-    newPath = safeMalloc(strlen(s) + strlen(shellState.homedir) + 1);
+    newPath = checkAlloc(malloc(strlen(s) + strlen(shellState.homedir) + 1));
     sprintf(newPath, "%s%s", shellState.homedir, &s[1]);
   } else {
     newPath = strdup(s);
@@ -53,22 +46,22 @@ char *resolveTilde(char *s) {
 
 void initShell() {
   size_t cbufsize = 4096;
-  char *cbuffer = safeMalloc(cbufsize);
+  char *cbuffer = checkAlloc(malloc(cbufsize));
   while (!(cbuffer = getcwd(cbuffer, cbufsize))) {
     cbufsize <<= 1;
-    cbuffer = realloc(cbuffer, cbufsize);
+    cbuffer = checkAlloc(realloc(cbuffer, cbufsize));
   }
   struct passwd pw;
   struct passwd *result;
   size_t bufsize = sysconf(_SC_GETPW_R_SIZE_MAX);
 
-  char *hostname = safeMalloc(HOSTNAME_MAX); // a
+  char *hostname = checkAlloc(malloc(HOSTNAME_MAX)); // a
 
   if (bufsize == -1) {
     bufsize = 16384;
   }
 
-  char *buf = safeMalloc(bufsize);
+  char *buf = checkAlloc(malloc(bufsize));
 
   shellState.uid = getuid();
 
