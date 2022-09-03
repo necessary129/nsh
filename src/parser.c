@@ -1,4 +1,4 @@
-#include "nsh/error_handler.h"
+#include <nsh/error_handler.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -32,6 +32,7 @@ void parseCommand(const char * cmd){
 		c.args[c.nargs++] = strdup(arg);
 	runCommand(&c);
 	destroyCommand(&c);
+	free(cmdcopy);
 }
 
 void destroyCommand(Command *c){

@@ -26,6 +26,8 @@ void setCwd() {
         free(shellState.previousdir);
       shellState.previousdir = strdup(shellState.currentdir);
     }
+  free(shellState.currentdir);
+
   } else {
     shellState.previousdir = strdup(buffer);
   }

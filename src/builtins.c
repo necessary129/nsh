@@ -1,31 +1,40 @@
-#include "nsh/utils.h"
 #include <nsh/builtins.h>
 #include <nsh/main.h>
 #include <nsh/parser.h>
 #include <nsh/prompt.h>
+#include <nsh/utils.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+
+// clang-format off
+struct builtin builtinCommands[] = {
+//	NAME,			MINARGS,	MAXARGS,	PARSEFLAGS,	FUNCTION
+	{"cd",			0,			1,			0,			cd},
+	{"pwd",			0, 			0, 			0,			pwd},
+	{"echo",		0,			-1,			0,			echo},
+	{"ls",			1,			-1,			1,			ls},
+	{0}
+};
+// clang-format on
 
 char *builtins[] = {"cd", "echo", "pwd", NULL};
 
 void (*builtinFuncs[])(Command *c) = {cd, echo, pwd};
 
 void runCommand(Command *c) {
-  char **command = builtins;
-  for (int i = 0; (*command) != NULL; command++, i++)
-    if (!strcmp(*command, c->name)) {
-      (*builtinFuncs[i])(c);
+  struct builtin *command = builtinCommands;
+  for (int i = 0; command->name[0] != 0; command++, i++)
+    if (!strcmp(command->name, c->name)) {
+      (*command->function)(c);
       return;
     }
 }
 
+void ls(Command *c) {}
+
 void cd(Command *c) {
-  if (c->nargs > 1) {
-    printf("Wrong arguments");
-    return;
-  }
   if (c->nargs == 0) {
     cdir(shellState.homedir);
   } else {
@@ -34,7 +43,7 @@ void cd(Command *c) {
     } else {
       char *path = resolveTilde(c->args[0]);
       cdir(path);
-	  free(path);
+      free(path);
     }
   }
 }
@@ -54,9 +63,4 @@ void echo(Command *c) {
   }
   printf("\n");
 };
-void pwd(Command *c) {
-  if (c->nargs != 0) {
-    printf("Wrong arguments");
-  }
-  printf("%s\n", shellState.currentdir);
-}
+void pwd(Command *c) { printf("%s\n", shellState.currentdir); }
