@@ -1,4 +1,4 @@
-#include <nsh/error_handler.h>
+#include <lib/error_handler.h>
 #include <stdio.h>
 #include <stdlib.h>
 

@@ -8,7 +8,7 @@
 #include <strings.h>
 #include <unistd.h>
 
-#include <nsh/error_handler.h>
+#include <lib/error_handler.h>
 #include <nsh/prompt.h>
 #include <nsh/utils.h>
 

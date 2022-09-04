@@ -1,6 +1,9 @@
-#include <nsh/error_handler.h>
+#include <lib/error_handler.h>
+#include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
+
+#include <lib/sdll.h>
 
 #include <nsh/builtins.h>
 #include <nsh/parser.h>
@@ -26,9 +29,11 @@ void parseCommand(const char *cmd) {
 	Command c = {0};
 	arg = strtok_r(cmdcopy, " \t", &saveptr);
 	c.name = strdup(arg);
-	c.args = checkAlloc(malloc(10 * sizeof(char *)));
+	size_t nmargs = 10;
+	c.args = createDLL();
+	dAppendElement(c.args, arg);
 	while ((arg = strtok_r(NULL, " \t", &saveptr)))
-		c.args[c.nargs++] = strdup(arg);
+		dAppendElement(c.args, arg);
 	runCommand(&c);
 	destroyCommand(&c);
 	free(cmdcopy);
@@ -36,8 +41,5 @@ void parseCommand(const char *cmd) {
 
 void destroyCommand(Command *c) {
 	free(c->name);
-	while (c->nargs) {
-		free(c->args[--c->nargs]);
-	}
-	free(c->args);
+	destroyDLL(c->args);
 }

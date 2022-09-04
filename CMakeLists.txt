@@ -10,5 +10,5 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_C_FLAGS_DEBUG_INIT "-Wall -Wextra -Wpedantic -g")
 set(CMAKE_C_FLAGS_RELEASE_INIT "-Wall -Wextra -Wpedantic  -O2")
 
-
+add_subdirectory(lib)
 add_subdirectory(src)

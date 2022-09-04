@@ -1,5 +1,5 @@
-#ifndef NSH_ERROR_HANDLER_H
-#define NSH_ERROR_HANDLER_H
+#ifndef LIB_ERROR_HANDLER_H
+#define LIB_ERROR_HANDLER_H
 
 void throwErrorPerror(const char *s);
 
