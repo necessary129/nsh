@@ -7,6 +7,8 @@ void cd(Command *c);
 void echo(Command *c);
 void pwd(Command *c);
 void ls(Command *c);
+void flagcheck(Command *c);
+
 int cdir(const char * path);
 
 struct builtin {
@@ -16,5 +18,8 @@ struct builtin {
 	int parseFlags;
 	void (*function)(Command *c);
 };
+
+void parseBuiltin(struct builtin *builtin, Command *c);
+
 
 #endif

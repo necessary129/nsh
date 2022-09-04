@@ -43,6 +43,7 @@ void dFreeElement(DElement *element) {
 
 void destroyDLL(DLL *dll){
 	DElement * start = dll->start;
+	if (!start) return;
 	DElement *next = start->next;
 	while (next){
 		dDeleteElement(dll, start);
