@@ -1,2 +1,5 @@
 BasedOnStyle: LLVM
 AlwaysBreakTemplateDeclarations: Yes
+UseTab: Always
+IndentWidth: 4
+TabWidth: 4
