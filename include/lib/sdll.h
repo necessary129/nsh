@@ -31,6 +31,8 @@ DElement * dPrev(DElement * element);
 
 DElement * dGetElement(DLL * dll, unsigned long n);
 
+char **dToArray(DLL *dll);
+
 void destroyDLL(DLL *dll);
 
 #endif

@@ -39,6 +39,9 @@ int interpret() {
 	size_t maxLen = MAX_LINE_LENGTH;
 	printf("%s", shellState.prompt);
 	nread = getline(&line, &maxLen, stdin);
-	parseLine(line);
-	return nread > 0;
+	int valid = nread > 0;
+	if (valid){
+		parseLine(line);
+	}
+	return valid;
 }

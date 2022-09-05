@@ -9,4 +9,5 @@ struct ShellState shellState = {0};
 int main() {
 	initShell();
 	while (interpret());
+	cleanup();
 }

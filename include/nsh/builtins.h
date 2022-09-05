@@ -19,7 +19,8 @@ struct builtin {
 	void (*function)(Command *c);
 };
 
-void parseBuiltin(struct builtin *builtin, Command *c);
-
+int parseBuiltin(struct builtin *builtin, Command *c);
+void lsPfile(char *fullpath, int longf) ;
+void lsProcess(char * s, int allf, int longf);
 
 #endif

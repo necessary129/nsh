@@ -1,4 +1,5 @@
 #include <errno.h>
+#include <grp.h>
 #include <nsh/main.h>
 #include <pwd.h>
 #include <stddef.h>
@@ -6,6 +7,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <strings.h>
+#include <time.h>
 #include <unistd.h>
 
 #include <lib/error_handler.h>
@@ -53,24 +55,12 @@ void initShell() {
 		cbufsize <<= 1;
 		cbuffer = checkAlloc(realloc(cbuffer, cbufsize));
 	}
-	struct passwd pw;
-	struct passwd *result;
-	size_t bufsize = sysconf(_SC_GETPW_R_SIZE_MAX);
-
 	char *hostname = checkAlloc(malloc(HOSTNAME_MAX)); // a
-
-	if (bufsize == -1) {
-		bufsize = 16384;
-	}
-
-	char *buf = checkAlloc(malloc(bufsize));
 
 	shellState.uid = getuid();
 
-	getpwuid_r(shellState.uid, &pw, buf, bufsize, &result);
-
 	shellState.homedir = strdup(cbuffer);
-	shellState.username = strdup(pw.pw_name);
+	shellState.username = getUname(shellState.uid);
 
 	gethostname(hostname, HOSTNAME_MAX);
 
@@ -79,14 +69,81 @@ void initShell() {
 
 	free(cbuffer);
 
-	free(buf);
 	free(hostname);
+}
+
+char *getUname(uid_t uid) {
+	struct passwd pw;
+	struct passwd *result;
+	size_t bufsize = sysconf(_SC_GETPW_R_SIZE_MAX);
+	if (bufsize == -1) {
+		bufsize = 16384;
+	}
+	char *buf = checkAlloc(malloc(bufsize));
+	getpwuid_r(uid, &pw, buf, bufsize, &result);
+	char *uname = checkAlloc(strdup(pw.pw_name));
+	free(buf);
+	return uname;
+}
+
+char *getGname(gid_t gid) {
+	struct group grp;
+	struct group *result;
+	size_t bufsize = sysconf(_SC_GETGR_R_SIZE_MAX);
+	if (bufsize == -1) {
+		bufsize = 16384;
+	}
+	char *buf = checkAlloc(malloc(bufsize));
+	getgrgid_r(gid, &grp, buf, bufsize, &result);
+	char *gname = checkAlloc(strdup(grp.gr_name));
+	free(buf);
+	return gname;
+}
+
+char *formatTime(time_t tim, char *fmt, int ty) {
+	struct tm result;
+	struct tm *broken = localtime_r(&tim, &result);
+
+	char *mfmt;
+
+	if (fmt == NULL) {
+		if (ty) {
+			time_t now = time(NULL);
+			struct tm nresult;
+			struct tm *nbroken = localtime_r(&now, &nresult);
+			if (broken->tm_year != nbroken->tm_year){
+				char nfmt[] = "%b\t%d\t%C";
+				mfmt = nfmt;
+			} else {
+				char nfmt[] = "%b\t%d\t%H:%M";
+				mfmt = nfmt;
+			}
+		} else {
+			char nfmt[] = "%c";
+			mfmt = nfmt;
+		}
+	} else {
+		mfmt = fmt;
+	}
+
+	size_t size = 512;
+	char *buffer = checkAlloc(malloc(sizeof *buffer * size));
+	if (strftime(buffer, size, mfmt, broken) == 0) {
+		throwError("Conversion failed");
+		return NULL;
+	}
+	char *new = checkAlloc(strdup(buffer));
+	free(buffer);
+	return new;
 }
 
 void cleanup() {
 	free(shellState.currentdir);
 	free(shellState.homedir);
 	free(shellState.previousdir);
+	free(shellState.promptdir);
 	free(shellState.prompt);
 	free(shellState.hostname);
+	free(shellState.username);
+	free(line);
 }
