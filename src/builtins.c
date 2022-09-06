@@ -156,7 +156,7 @@ void lsPname(char *name, unsigned mode) {
 		color = "";
 		break;
 	}
-	printf("%s%s" COLOR_RESET, color, name);
+	printf("%s%s" CRESET, color, name);
 }
 
 void lsPfile(char *fullpath, int longf) {
@@ -169,7 +169,7 @@ void lsPfile(char *fullpath, int longf) {
 	};
 	if (!longf) {
 		lsPname(name, statbuf.st_mode);
-		printf("\t");
+		printf("\n");
 	} else {
 
 		char perms[11] = {0};
@@ -296,7 +296,7 @@ void cd(Command *c) {
 int cdir(const char *path) {
 	int r;
 	if ((r = chdir(path))) {
-		perror("Cannot change directory.");
+		throwErrorPerror("Cannot change directory");
 	}
 	setPrompt();
 	return r;

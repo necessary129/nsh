@@ -1,3 +1,4 @@
+#include <lib/colors.h>
 #include <lib/error_handler.h>
 #include <nsh/main.h>
 #include <nsh/prompt.h>
@@ -24,11 +25,16 @@ void setPrompt() {
 		strcpy(shellState.promptdir, cwd);
 	}
 	shellState.prompt = checkAlloc(
-		realloc(shellState.prompt, 1 + strlen(shellState.username) + 1 +
-									   strlen(shellState.hostname) + 1 +
-									   strlen(shellState.promptdir) + 3));
-	sprintf(shellState.prompt, "<%s@%s:%s> ", shellState.username,
-			shellState.hostname, shellState.promptdir);
+		realloc(shellState.prompt, strlen(shellState.username) +
+									   strlen(shellState.hostname) +
+									   strlen(shellState.promptdir) + 256));
+	sprintf(shellState.prompt,
+			CGETCOLOR(BLUE) "[" CRESET CGETCOLOR(RED) "%s" CRESET
+				CGETCOLOR(BRIGHT_WHITE) "@" CRESET CGETCOLOR(
+					CYAN) "%s" CRESET "\t" CGETCOLOR(CYAN) "%s" CRESET
+					CGETCOLOR(BLUE) "]" CRESET CGETCOLOR(
+						GREEN) "\n> " CRESET CTGETCOLOR(NORMAL, BLUE),
+			shellState.username, shellState.hostname, shellState.promptdir);
 }
 
 int interpret() {
@@ -39,8 +45,9 @@ int interpret() {
 	size_t maxLen = MAX_LINE_LENGTH;
 	printf("%s", shellState.prompt);
 	nread = getline(&line, &maxLen, stdin);
+	printf(CRESET);
 	int valid = nread > 0;
-	if (valid){
+	if (valid) {
 		parseLine(line);
 	}
 	return valid;
