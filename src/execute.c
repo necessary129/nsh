@@ -21,7 +21,7 @@ void execute(Command *c){
 			return;
 		}
 		resetFgSig();
-		char ** argv = dToArray(c->args);
+		char ** argv = sdToArray(c->args);
 
 		execvp(c->name, argv);
 		free(argv);

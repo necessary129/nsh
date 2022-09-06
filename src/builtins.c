@@ -49,7 +49,7 @@ int parseBuiltin(struct builtin *builtin, Command *c) {
 			if (el->data[0] == '-') {
 				for (char *a = &el->data[1]; (*a) != '\0'; a++)
 					c->flag[(*a) - '0']++;
-				dDeleteElement(c->args, el);
+				sdDeleteElement(c->args, el);
 			}
 			el = nel;
 		}
@@ -80,8 +80,8 @@ void ls(Command *c) {
 	if (!multiple) {
 		lsProcess(s, allf, longf);
 	} else {
-		for (DElement *el = dGetElement(c->args, 1); el != NULL;
-			 el = dNext(el)) {
+		for (DElement *el = sdGetElement(c->args, 1); el != NULL;
+			 el = sdNext(el)) {
 			printf("%s:\n", el->data);
 			lsProcess(el->data, allf, longf);
 			printf("\n");
@@ -255,7 +255,7 @@ void lsPfile(char *fullpath, int longf) {
 		lsPname(name, statbuf.st_mode);
 
 		if ((statbuf.st_mode & S_IFMT) == S_IFLNK) {
-			char *correctpath = realpath(fullpath, NULL);
+			char *correctpath = nreadlink(fullpath);
 			if (!correctpath) {
 				throwErrorPerror("Cannot resolve symlink.");
 			} else {
@@ -282,10 +282,10 @@ void cd(Command *c) {
 	if (c->args->size == 1) {
 		cdir(shellState.homedir);
 	} else {
-		if (!strcmp(dGetData(dGetElement(c->args, 1)), "-")) {
+		if (!strcmp(sdGetData(sdGetElement(c->args, 1)), "-")) {
 			cdir(shellState.previousdir);
 		} else {
-			char *path = resolveTilde(dGetData(dGetElement(c->args, 1)));
+			char *path = resolveTilde(sdGetData(sdGetElement(c->args, 1)));
 			cdir(path);
 			free(path);
 		}
@@ -306,8 +306,8 @@ int cdir(const char *path) {
 }
 
 void echo(Command *c) {
-	for (DElement *el = dGetElement(c->args, 1); el != NULL; el = dNext(el)) {
-		printf("%s ", dGetData(el));
+	for (DElement *el = sdGetElement(c->args, 1); el != NULL; el = sdNext(el)) {
+		printf("%s ", sdGetData(el));
 	}
 	printf("\n");
 };
@@ -318,7 +318,7 @@ void pinfo(Command *c) {
 	char *pid = checkAlloc(calloc(16, sizeof *pid));
 
 	if (c->args->size == 2) {
-		sprintf(pid, "%s", dGetData(dGetElement(c->args, 1)));
+		sprintf(pid, "%s", sdGetData(sdGetElement(c->args, 1)));
 	} else {
 		sprintf(pid, "%d", getpid());
 	}

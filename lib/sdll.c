@@ -5,12 +5,12 @@
 #include <stdlib.h>
 #include <string.h>
 
-DLL *createDLL() {
-	DLL *newDLL = checkAlloc(calloc(sizeof *newDLL, 1));
+sDLL *screateDLL() {
+	sDLL *newDLL = checkAlloc(calloc(sizeof *newDLL, 1));
 	return newDLL;
 }
 
-void dAppendElement(DLL *dll, const char *s) {
+void sdAppendElement(sDLL *dll, sDData s) {
 	DElement *newEl = checkAlloc(calloc(sizeof *newEl, 1));
 	newEl->prev = dll->end;
 	newEl->data = strdup(s);
@@ -23,7 +23,7 @@ void dAppendElement(DLL *dll, const char *s) {
 	dll->size++;
 }
 
-void dDeleteElement(DLL *dll, DElement *element) {
+void sdDeleteElement(sDLL *dll, DElement *element) {
 	if (element->prev) 
 		element->prev->next = element->next;
 	if (element->next) 
@@ -33,53 +33,53 @@ void dDeleteElement(DLL *dll, DElement *element) {
 	if (dll->end == element)
 		dll->end = element->prev;
 	dll->size--;
-	dFreeElement(element);
+	sdFreeElement(element);
 }
 
-void dFreeElement(DElement *element) {
+void sdFreeElement(DElement *element) {
 	free(element->data);
 	free(element);
 }
 
-void destroyDLL(DLL *dll){
+void sdestroyDLL(sDLL *dll){
 	DElement * start = dll->start;
 	if (!start) return;
 	DElement *next = start->next;
 	while (next){
-		dDeleteElement(dll, start);
+		sdDeleteElement(dll, start);
 		start = next;
 		next = next->next;
 	}
-	dDeleteElement(dll, start);
+	sdDeleteElement(dll, start);
 	assert(dll->size == 0);
 	free(dll);
 }
 
-char * dGetData(DElement *element){
+sDData sdGetData(DElement *element){
 	return element->data;
 }
 
-DElement * dNext(DElement *element){
+DElement * sdNext(DElement *element){
 	return element->next;
 }
 
-DElement * dPrev(DElement * element){
+DElement * sdPrev(DElement * element){
 	return element->prev;
 }
 
-DElement * dGetElement(DLL * dll, unsigned long n){
+DElement * sdGetElement(sDLL * dll, unsigned long n){
 	if (dll->size < n){
 		return NULL;
 	}
 	DElement * el = dll->start;
-	for (unsigned int i = 0; i < n && el != NULL; i++, el = dNext(el));
+	for (unsigned int i = 0; i < n && el != NULL; i++, el = sdNext(el));
 	return el;
 }
 
-char **dToArray(DLL *dll){
-	char ** arr = checkAlloc(calloc(dll->size + 1, sizeof *arr));
+sDData*sdToArray(sDLL *dll){
+	sDData* arr = checkAlloc(calloc(dll->size + 1, sizeof *arr));
 	DElement * el = dll->start;
-	for (unsigned int i = 0; i < dll->size && el != NULL; i++, el = dNext(el)){
+	for (unsigned int i = 0; i < dll->size && el != NULL; i++, el = sdNext(el)){
 		arr[i] = el->data;
 	}
 	return arr;

@@ -7,7 +7,7 @@ void parseCommand(const char * cmd);
 
 struct Command {
 	char * name;
-	DLL *args;
+	sDLL *args;
 	int bg;
 	int flag['z' - '0' + 1]; // Assuming flags are single characters
 };

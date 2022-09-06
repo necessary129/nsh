@@ -30,10 +30,10 @@ void parseCommand(const char *cmd) {
 	arg = strtok_r(cmdcopy, " \t", &saveptr);
 	c.name = strdup(arg);
 	size_t nmargs = 10;
-	c.args = createDLL();
-	dAppendElement(c.args, arg);
+	c.args = screateDLL();
+	sdAppendElement(c.args, arg);
 	while ((arg = strtok_r(NULL, " \t", &saveptr)))
-		dAppendElement(c.args, arg);
+		sdAppendElement(c.args, arg);
 	runCommand(&c);
 	destroyCommand(&c);
 	free(cmdcopy);
@@ -41,5 +41,5 @@ void parseCommand(const char *cmd) {
 
 void destroyCommand(Command *c) {
 	free(c->name);
-	destroyDLL(c->args);
+	sdestroyDLL(c->args);
 }

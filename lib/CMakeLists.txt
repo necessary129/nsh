@@ -1,3 +1,3 @@
-add_library(lib error_handler.c sdll.c)
+add_library(lib error_handler.c sdll.c ldll.c)
 
 target_include_directories(lib PRIVATE ${CMAKE_SOURCE_DIR}/include)
