@@ -77,7 +77,7 @@ DElement * dGetElement(DLL * dll, unsigned long n){
 }
 
 char **dToArray(DLL *dll){
-	char ** arr = checkAlloc(malloc(sizeof *arr * dll->size));
+	char ** arr = checkAlloc(calloc(dll->size + 1, sizeof *arr));
 	DElement * el = dll->start;
 	for (unsigned int i = 0; i < dll->size && el != NULL; i++, el = dNext(el)){
 		arr[i] = el->data;

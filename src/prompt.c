@@ -33,7 +33,7 @@ void setPrompt() {
 				CGETCOLOR(BRIGHT_WHITE) "@" CRESET CGETCOLOR(
 					CYAN) "%s" CRESET "\t" CGETCOLOR(CYAN) "%s" CRESET
 					CGETCOLOR(BLUE) "]" CRESET CGETCOLOR(
-						GREEN) "\n> " CRESET CTGETCOLOR(NORMAL, BLUE),
+						GREEN) "\n\u276f " CRESET CTGETCOLOR(NORMAL, BLUE),
 			shellState.username, shellState.hostname, shellState.promptdir);
 }
 

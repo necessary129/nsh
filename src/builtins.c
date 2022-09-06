@@ -1,9 +1,11 @@
-#include "lib/colors.h"
+#include <alloca.h>
 #include <dirent.h>
+#include <lib/colors.h>
 #include <lib/error_handler.h>
 #include <lib/sdll.h>
 #include <libgen.h>
 #include <nsh/builtins.h>
+#include <nsh/execute.h>
 #include <nsh/main.h>
 #include <nsh/parser.h>
 #include <nsh/prompt.h>
@@ -22,6 +24,7 @@ struct builtin builtinCommands[] = {
 	{"echo",		0,			-1,			1,			echo},
 	{"ls",			0,			-1,			1,			ls},
 	{"flagcheck",	0,			-1,			1,			flagcheck},
+	{"pinfo",		0,			1,			0,			pinfo},
 	{0}
 };
 // clang-format on
@@ -60,6 +63,7 @@ void runCommand(Command *c) {
 			(*command->function)(c);
 			return;
 		}
+	execute(c);
 }
 
 void ls(Command *c) {
@@ -223,18 +227,8 @@ void lsPfile(char *fullpath, int longf) {
 				perms[3 * i + 3] = 'x';
 			mode >>= 3;
 		}
-		// perms[9] = '\0';
 		printf("%s", perms);
 
-		// printf((statbuf.st_mode & S_IRUSR) ? "r" : "-");
-		// printf((statbuf.st_mode & S_IWUSR) ? "w" : "-");
-		// printf((statbuf.st_mode & S_IXUSR) ? "x" : "-");
-		// printf((statbuf.st_mode & S_IRGRP) ? "r" : "-");
-		// printf((statbuf.st_mode & S_IWGRP) ? "w" : "-");
-		// printf((statbuf.st_mode & S_IXGRP) ? "x" : "-");
-		// printf((statbuf.st_mode & S_IROTH) ? "r" : "-");
-		// printf((statbuf.st_mode & S_IWOTH) ? "w" : "-");
-		// printf((statbuf.st_mode & S_IXOTH) ? "x" : "-");
 		printf("\t");
 
 		printf("%lu\t", statbuf.st_nlink);
@@ -310,3 +304,48 @@ void echo(Command *c) {
 };
 
 void pwd(Command *c) { printf("%s\n", shellState.currentdir); }
+
+void pinfo(Command *c) {
+	char *pid = checkAlloc(calloc(16, sizeof *pid));
+
+	if (c->args->size == 2) {
+		sprintf(pid, "%s", dGetData(dGetElement(c->args, 1)));
+	} else {
+		sprintf(pid, "%d", getpid());
+	}
+
+	char *statfile =
+		checkAlloc(calloc(5 + strlen(pid) + 5 + 1, sizeof *statfile));
+	char *exefile =
+		checkAlloc(calloc(5 + strlen(pid) + 4 + 1, sizeof *exefile));
+
+	sprintf(statfile, "/proc/%s/stat", pid);
+	sprintf(exefile, "/proc/%s/exe", pid);
+
+	char *execpath = nreadlink(exefile);
+	FILE *stat = fopen(statfile, "r");
+
+	int ipid = -1;
+	char status = '-';
+	unsigned long mem = 0;
+	int pgid = -1;
+	int tpgrp = -1;
+
+	fscanf(stat,
+		   "%d (%*[^)]) %c %*s %d %*s %*s %d %*s %*s %*s %*s %*s %*s %*s %*s "
+		   "%*s %*s %*s %*s %*s %*s %lu",
+		   &ipid, &status, &pgid, &tpgrp, &mem);
+
+	printf(CGETCOLOR(WHITE));
+	printf("PID      \t: " CGETCOLOR(CYAN) "%d\n" CGETCOLOR(WHITE), ipid);
+	printf("Status   \t: " CGETCOLOR(PURPLE) "%c%c\n" CGETCOLOR(WHITE), status, (tpgrp == pgid) ? '+' : 0);
+	printf("VMemory  \t: " CGETCOLOR(ORANGE) "%lu\n" CGETCOLOR(WHITE), mem);
+	if (execpath){
+		printf("Exec Path\t: " CGETCOLOR(BLUE) "'%s'\n" CRESET, execpath);
+	}
+
+	free(execpath);
+	free(exefile);
+	free(statfile);
+	free(pid);
+}

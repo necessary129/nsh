@@ -15,5 +15,6 @@ void cleanup();
 char * getUname(uid_t uid);
 char *getGname(gid_t gid);
 
+char *nreadlink(const char *restrict pathname);
 char *formatTime(time_t tim, char *fmt, int ty);
 #endif

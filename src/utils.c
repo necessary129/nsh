@@ -12,6 +12,7 @@
 
 #include <lib/error_handler.h>
 #include <nsh/prompt.h>
+#include <nsh/signals.h>
 #include <nsh/utils.h>
 
 void setCwd() {
@@ -66,6 +67,8 @@ void initShell() {
 
 	shellState.hostname = strdup(hostname);
 	setPrompt();
+
+	initSignal();
 
 	free(cbuffer);
 
@@ -137,7 +140,21 @@ char *formatTime(time_t tim, char *fmt, int ty) {
 	return new;
 }
 
+char *nreadlink(const char *restrict pathname){
+	char *buffer;
+	size_t bufsize = 16384;
+	buffer = checkAlloc(malloc(bufsize));
+	size_t read = readlink(pathname, buffer, bufsize);
+	if (read == -1){
+		throwErrorPerror("Cannot readlink");
+		return NULL;
+	}
+	buffer[read] = '\0';
+	return checkAlloc(realloc(buffer, read + 1));
+}
+
 void cleanup() {
+	printf("\n");
 	free(shellState.currentdir);
 	free(shellState.homedir);
 	free(shellState.previousdir);
