@@ -10,6 +10,7 @@ void ls(Command *c);
 void flagcheck(Command *c);
 void pinfo(Command *c);
 void quit(Command *c);
+void discover(Command *c);
 
 extern int bquit;
 

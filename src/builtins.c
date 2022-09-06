@@ -1,5 +1,6 @@
 #include <alloca.h>
 #include <dirent.h>
+#include <fnmatch.h>
 #include <lib/colors.h>
 #include <lib/error_handler.h>
 #include <lib/sdll.h>
@@ -26,6 +27,7 @@ struct builtin builtinCommands[] = {
 	{"flagcheck",	0,			-1,			1,			flagcheck},
 	{"pinfo",		0,			1,			0,			pinfo},
 	{"quit", 		0,			0,			0,			quit},
+	{"discover", 	0,			2,			1,			discover},
 	{0}
 };
 // clang-format on
@@ -37,11 +39,7 @@ char *builtins[] = {"cd", "echo", "pwd", NULL};
 void (*builtinFuncs[])(Command *c) = {cd, echo, pwd};
 
 int parseBuiltin(struct builtin *builtin, Command *c) {
-	if (c->args->size < builtin->minArgs + 1 ||
-		(builtin->maxArgs != -1 && c->args->size > builtin->maxArgs + 1)) {
-		throwError("Wrong Arguments.");
-		return 1;
-	}
+
 	if (builtin->parseFlags) {
 		DElement *el = c->args->start;
 		while (el) {
@@ -53,6 +51,11 @@ int parseBuiltin(struct builtin *builtin, Command *c) {
 			}
 			el = nel;
 		}
+	}
+	if (c->args->size < builtin->minArgs + 1 ||
+		(builtin->maxArgs != -1 && c->args->size > builtin->maxArgs + 1)) {
+		throwError("Wrong Arguments.");
+		return 1;
 	}
 	return 0;
 }
@@ -292,9 +295,7 @@ void cd(Command *c) {
 	}
 }
 
-void quit(Command *c){
-	bquit = 1;
-}
+void quit(Command *c) { bquit = 1; }
 
 int cdir(const char *path) {
 	int r;
@@ -331,7 +332,6 @@ void pinfo(Command *c) {
 	sprintf(statfile, "/proc/%s/stat", pid);
 	sprintf(exefile, "/proc/%s/exe", pid);
 
-	char *execpath = nreadlink(exefile);
 	FILE *stat = fopen(statfile, "r");
 
 	if (!stat){
@@ -355,9 +355,10 @@ void pinfo(Command *c) {
 
 	printf(CGETCOLOR(WHITE));
 	printf("PID      \t: " CGETCOLOR(CYAN) "%d\n" CGETCOLOR(WHITE), ipid);
-	printf("Status   \t: " CGETCOLOR(PURPLE) "%c%c\n" CGETCOLOR(WHITE), status, (tpgrp == pgid) ? '+' : 0);
+	printf("Status   \t: " CGETCOLOR(PURPLE) "%c%c\n" CGETCOLOR(WHITE), status,
+		   (tpgrp == pgid) ? '+' : 0);
 	printf("VMemory  \t: " CGETCOLOR(ORANGE) "%lu\n" CGETCOLOR(WHITE), mem);
-	if (execpath){
+	if (execpath) {
 		printf("Exec Path\t: " CGETCOLOR(BLUE) "'%s'\n" CRESET, execpath);
 	}
 
@@ -365,4 +366,89 @@ void pinfo(Command *c) {
 	free(exefile);
 	free(statfile);
 	free(pid);
+}
+
+void discoverTraverse(char *path, char *filetofind, int dirf, int filef) {
+	struct dirent **namelist;
+
+	int n = scandir(path, &namelist, NULL, alphasort);
+	if (n == -1) {
+		throwErrorPerror("Discover failed");
+		return;
+	}
+	for (int i = 0; i < n; i++) {
+		struct dirent *filedata = namelist[i];
+		if (!(strcmp(filedata->d_name, ".") &&
+			  strcmp(filedata->d_name, ".."))) {
+			free(namelist[i]);
+			continue;
+		}
+		char *newpath =
+			checkAlloc(malloc(strlen(path) + 1 + strlen(filedata->d_name) + 1));
+		sprintf(newpath, "%s/%s", path, filedata->d_name);
+
+		if ((dirf && (filedata->d_type == DT_DIR)) ||
+			(filef && (filedata->d_type == DT_REG))) {
+			if (!filetofind ||
+				fnmatch(filetofind, filedata->d_name, FNM_PATHNAME) == 0) {
+				printf("%s\n", newpath);
+			}
+		}
+
+		if (filedata->d_type == DT_DIR) {
+			discoverTraverse(newpath, filetofind, dirf, filef);
+		}
+
+		free(newpath);
+		free(namelist[i]);
+	}
+	free(namelist);
+}
+
+void discover(Command *c) {
+	if (!c->flag['f' - '0'] && !c->flag['d' - '0']) {
+		c->flag['f' - '0'] = 1;
+		c->flag['d' - '0'] = 1;
+	}
+	int dirf = c->flag['d' - '0'];
+	int filef = c->flag['f' - '0'];
+
+	char *filetofind = NULL;
+	char *directory = NULL;
+	DElement *f;
+
+	for (DElement *el = sdGetElement(c->args, 1); el != NULL; el = sdNext(el)) {
+		char *data = sdGetData(el);
+		if (data[0] == '"' && data[strlen(data) - 1] == '"') {
+			filetofind = checkAlloc(strdup(&data[1]));
+			filetofind[strlen(filetofind) - 1] = '\0';
+			f = el;
+		} else {
+			directory = data;
+		}
+	}
+
+	if (!directory) {
+		directory = ".";
+	}
+
+	char *newpath = resolveTilde(directory);
+	struct stat statbuf;
+
+	if (stat(newpath, &statbuf) == -1) {
+		throwErrorPerror("Discover failed");
+		return;
+	}
+
+	if (S_ISREG(statbuf.st_mode) && filef &&
+		(!filetofind || (fnmatch(filetofind, basename(newpath), FNM_PATHNAME) == 0))) {
+		printf("%s\n", newpath);
+	} else if (S_ISDIR(statbuf.st_mode)) {
+		if (dirf && (!filetofind || fnmatch(filetofind, basename(newpath), FNM_PATHNAME) == 0))
+			printf("%s\n", newpath);
+		discoverTraverse(newpath, filetofind, dirf, filef);
+	}
+
+	free(newpath);
+	free(filetofind);
 }
