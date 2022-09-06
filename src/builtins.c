@@ -334,6 +334,14 @@ void pinfo(Command *c) {
 	char *execpath = nreadlink(exefile);
 	FILE *stat = fopen(statfile, "r");
 
+	if (!stat){
+		throwError("PID doesn't exist");
+		return;
+	}
+
+	char *execpath = nreadlink(exefile);
+
+
 	int ipid = -1;
 	char status = '-';
 	unsigned long mem = 0;
