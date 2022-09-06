@@ -1,9 +1,11 @@
 #include "lib/error_handler.h"
+#include "nsh/utils.h"
 #include <lib/sdll.h>
 #include <nsh/execute.h>
 #include <nsh/parser.h>
 #include <nsh/signals.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <sys/wait.h>
 #include <time.h>
 #include <unistd.h>
@@ -16,11 +18,15 @@ void execute(Command *c){
 	} else if (pid == 0){
 		if (setpgid(0, 0) == -1){
 			throwPerrorAndFail("Could not set own process group");
+			return;
 		}
 		resetFgSig();
+		char ** argv = dToArray(c->args);
 
-		execvp(c->name,dToArray(c->args));
+		execvp(c->name, argv);
+		free(argv);
 		throwPerrorAndFail("Couldn't exec");
+		return;
 	} else {
 		if (!c->bg){
 			makeFgSig();

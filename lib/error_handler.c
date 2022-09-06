@@ -8,6 +8,7 @@
 #include <string.h>
 
 extern int errno;
+int lfail = 0;
 
 void throwErrorPerror(const char *s) { 
 	size_t errlen = 1024;
@@ -21,12 +22,14 @@ void throwError(const char *s) { fprintf(stderr, CGETCOLOR(BRIGHT_RED) "%s\n" CR
 
 void throwPerrorAndFail(const char *s) {
 	throwErrorPerror(s);
-	exit(EXIT_FAILURE);
+	lfail = 1;
+	//exit(EXIT_FAILURE);
 }
 
 void *checkAlloc(void *ptr) {
 	if (ptr == NULL) {
 		throwPerrorAndFail("Malloc failed");
+		exit(EXIT_FAILURE);
 	}
 	return ptr;
 }

@@ -1,5 +1,6 @@
 #include <lib/colors.h>
 #include <lib/error_handler.h>
+#include <nsh/builtins.h>
 #include <nsh/main.h>
 #include <nsh/prompt.h>
 #include <stddef.h>
@@ -50,5 +51,9 @@ int interpret() {
 	if (valid) {
 		parseLine(line);
 	}
-	return valid;
+	if (lfail){
+		cleanup();
+		exit(EXIT_FAILURE);
+	}
+	return valid && !bquit;
 }

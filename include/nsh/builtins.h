@@ -9,6 +9,9 @@ void pwd(Command *c);
 void ls(Command *c);
 void flagcheck(Command *c);
 void pinfo(Command *c);
+void quit(Command *c);
+
+extern int bquit;
 
 int cdir(const char * path);
 

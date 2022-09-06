@@ -25,9 +25,12 @@ struct builtin builtinCommands[] = {
 	{"ls",			0,			-1,			1,			ls},
 	{"flagcheck",	0,			-1,			1,			flagcheck},
 	{"pinfo",		0,			1,			0,			pinfo},
+	{"quit", 		0,			0,			0,			quit},
 	{0}
 };
 // clang-format on
+
+int bquit = 0;
 
 char *builtins[] = {"cd", "echo", "pwd", NULL};
 
@@ -93,7 +96,8 @@ void lsProcess(char *s, int allf, int longf) {
 
 	char *path = resolveTilde(s);
 	if (lstat(path, &statbuf)) {
-		throwError("Listing failed");
+		throwErrorPerror("Listing failed");
+		free(path);
 		return;
 	};
 
@@ -104,7 +108,7 @@ void lsProcess(char *s, int allf, int longf) {
 	}
 	int n = scandir(path, &namelist, NULL, alphasort);
 	if (n == -1) {
-		throwErrorPerror("Listing failed.");
+		throwErrorPerror("Listing failed");
 		return;
 	}
 	for (int i = 0; i < n; i++) {
@@ -168,7 +172,8 @@ void lsPfile(char *fullpath, int longf) {
 	char *name = basename(newpath);
 	struct stat statbuf;
 	if (lstat(fullpath, &statbuf)) {
-		throwError("Listing failed");
+		throwErrorPerror("Listing failed");
+		free(newpath);
 		return;
 	};
 	if (!longf) {
@@ -285,6 +290,10 @@ void cd(Command *c) {
 			free(path);
 		}
 	}
+}
+
+void quit(Command *c){
+	bquit = 1;
 }
 
 int cdir(const char *path) {
