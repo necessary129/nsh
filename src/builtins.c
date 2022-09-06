@@ -1,3 +1,4 @@
+#include "lib/colors.h"
 #include <dirent.h>
 #include <lib/error_handler.h>
 #include <lib/sdll.h>
@@ -124,52 +125,116 @@ void lsProcess(char *s, int allf, int longf) {
 	free(path);
 }
 
+void lsPname(char *name, unsigned mode) {
+	char *color;
+	switch (mode & S_IFMT) {
+	case S_IFBLK:
+		color = CGETCOLOR(ORANGE, BLACK);
+		break;
+	case S_IFCHR:
+		color = CGETCOLOR(ORANGE, BLACK);
+		break;
+	case S_IFDIR:
+		color = CGETCOLOR(BLUE);
+		break;
+	case S_IFIFO:
+		color = CGETCOLOR(NORMAL, ORANGE, BLACK);
+		break;
+	case S_IFLNK:
+		color = CGETCOLOR(CYAN);
+		break;
+	case S_IFREG:
+		if (mode & S_IXUSR)
+			color = CGETCOLOR(GREEN);
+		else
+			color = "";
+		break;
+	case S_IFSOCK:
+		color = CGETCOLOR(PURPLE);
+		break;
+	default:
+		color = "";
+		break;
+	}
+	printf("%s%s" COLOR_RESET, color, name);
+}
+
 void lsPfile(char *fullpath, int longf) {
 	char *newpath = strdup(fullpath);
 	char *name = basename(newpath);
+	struct stat statbuf;
+	if (lstat(fullpath, &statbuf)) {
+		throwError("Listing failed");
+		return;
+	};
 	if (!longf) {
-		printf("%s\t", name);
+		lsPname(name, statbuf.st_mode);
+		printf("\t");
 	} else {
-		struct stat statbuf;
-		if (lstat(fullpath, &statbuf)) {
-			throwError("Listing failed");
-			return;
-		};
+
+		char perms[11] = {0};
+		memset(perms, '-', 10);
+
+		char *color;
+
 		switch (statbuf.st_mode & S_IFMT) {
 		case S_IFBLK:
-			printf("b");
+			perms[0] = 'b';
+			color = CGETCOLOR(ORANGE, BLACK);
 			break;
 		case S_IFCHR:
-			printf("c");
+			perms[0] = 'c';
+			color = CGETCOLOR(ORANGE, BLACK);
 			break;
 		case S_IFDIR:
-			printf("d");
+			perms[0] = 'd';
+			color = CGETCOLOR(BLUE);
 			break;
 		case S_IFIFO:
-			printf("p");
+			perms[0] = 'p';
+			color = CGETCOLOR(NORMAL, ORANGE, BLACK);
 			break;
 		case S_IFLNK:
-			printf("l");
+			perms[0] = 'l';
+			color = CGETCOLOR(CYAN);
 			break;
 		case S_IFREG:
-			printf("-");
+			perms[0] = '-';
+			color = "";
 			break;
 		case S_IFSOCK:
-			printf("s");
+			perms[0] = 's';
+			color = CGETCOLOR(PURPLE);
 			break;
 		default:
-			printf("?");
+			perms[0] = '?';
+			color = "";
 			break;
 		}
-		printf((statbuf.st_mode & S_IRUSR) ? "r" : "-");
-		printf((statbuf.st_mode & S_IWUSR) ? "w" : "-");
-		printf((statbuf.st_mode & S_IXUSR) ? "x" : "-");
-		printf((statbuf.st_mode & S_IRGRP) ? "r" : "-");
-		printf((statbuf.st_mode & S_IWGRP) ? "w" : "-");
-		printf((statbuf.st_mode & S_IXGRP) ? "x" : "-");
-		printf((statbuf.st_mode & S_IROTH) ? "r" : "-");
-		printf((statbuf.st_mode & S_IWOTH) ? "w" : "-");
-		printf((statbuf.st_mode & S_IXOTH) ? "x" : "-");
+
+		int mode = statbuf.st_mode;
+
+		for (int i = 0; i < 3; i++) {
+			if (mode & 4)
+				perms[3 * i + 1] = 'r';
+			if (mode & 2)
+				perms[3 * i + 2] = 'w';
+			if (mode & 1)
+				perms[3 * i + 3] = 'x';
+			mode >>= 3;
+		}
+		// perms[9] = '\0';
+		printf("%s", perms);
+
+		// printf((statbuf.st_mode & S_IRUSR) ? "r" : "-");
+		// printf((statbuf.st_mode & S_IWUSR) ? "w" : "-");
+		// printf((statbuf.st_mode & S_IXUSR) ? "x" : "-");
+		// printf((statbuf.st_mode & S_IRGRP) ? "r" : "-");
+		// printf((statbuf.st_mode & S_IWGRP) ? "w" : "-");
+		// printf((statbuf.st_mode & S_IXGRP) ? "x" : "-");
+		// printf((statbuf.st_mode & S_IROTH) ? "r" : "-");
+		// printf((statbuf.st_mode & S_IWOTH) ? "w" : "-");
+		// printf((statbuf.st_mode & S_IXOTH) ? "x" : "-");
 		printf("\t");
 
 		printf("%lu\t", statbuf.st_nlink);
@@ -188,7 +253,7 @@ void lsPfile(char *fullpath, int longf) {
 		printf("%s\t", tim);
 		free(tim);
 
-		printf("%s", name);
+		lsPname(name, statbuf.st_mode);
 
 		if ((statbuf.st_mode & S_IFMT) == S_IFLNK) {
 			char *correctpath = realpath(fullpath, NULL);
@@ -200,8 +265,8 @@ void lsPfile(char *fullpath, int longf) {
 			}
 		}
 		printf("\n");
-		free(newpath);
 	}
+	free(newpath);
 }
 
 void flagcheck(Command *c) {

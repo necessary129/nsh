@@ -112,10 +112,10 @@ char *formatTime(time_t tim, char *fmt, int ty) {
 			struct tm nresult;
 			struct tm *nbroken = localtime_r(&now, &nresult);
 			if (broken->tm_year != nbroken->tm_year){
-				char nfmt[] = "%b\t%d\t%Y";
+				char nfmt[] = "%b\t%e\t%Y";
 				mfmt = nfmt;
 			} else {
-				char nfmt[] = "%b\t%d\t%H:%M";
+				char nfmt[] = "%b\t%e\t%H:%M";
 				mfmt = nfmt;
 			}
 		} else {
