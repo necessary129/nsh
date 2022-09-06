@@ -88,7 +88,7 @@ void lsProcess(char *s, int allf, int longf) {
 	struct stat statbuf;
 
 	char *path = resolveTilde(s);
-	if (lstat(s, &statbuf)) {
+	if (lstat(path, &statbuf)) {
 		throwError("Listing failed");
 		return;
 	};
