@@ -10,30 +10,30 @@
 #include <time.h>
 #include <unistd.h>
 
-void execute(Command *c){
+void execute(Command *c) {
 	pid_t pid = fork();
 
-	if (pid == -1){
+	if (pid == -1) {
 		throwErrorPerror("Could not fork");
-	} else if (pid == 0){
-		if (setpgid(0, 0) == -1){
+	} else if (pid == 0) {
+		if (setpgid(0, 0) == -1) {
 			throwPerrorAndFail("Could not set own process group");
 			return;
 		}
 		resetFgSig();
-		char ** argv = sdToArray(c->args);
+		char **argv = sdToArray(c->args);
 
 		execvp(c->name, argv);
 		free(argv);
 		throwPerrorAndFail("Couldn't exec");
 		return;
 	} else {
-		if (!c->bg){
+		if (!c->bg) {
 			makeFgSig();
 			if (tcsetpgrp(STDIN_FILENO, pid) == -1) {
 				throwErrorPerror("Couldn't set TPGID");
 			}
-			if (waitpid(pid, NULL, WUNTRACED) == -1){
+			if (waitpid(pid, NULL, WUNTRACED) == -1) {
 				throwErrorPerror("Could not wait for child");
 			}
 			if (tcsetpgrp(STDIN_FILENO, getpgid(0)) == -1) {

@@ -114,7 +114,7 @@ char *formatTime(time_t tim, char *fmt, int ty) {
 			time_t now = time(NULL);
 			struct tm nresult;
 			struct tm *nbroken = localtime_r(&now, &nresult);
-			if (broken->tm_year != nbroken->tm_year){
+			if (broken->tm_year != nbroken->tm_year) {
 				char nfmt[] = "%b\t%e\t%Y";
 				mfmt = nfmt;
 			} else {
@@ -140,12 +140,12 @@ char *formatTime(time_t tim, char *fmt, int ty) {
 	return new;
 }
 
-char *nreadlink(const char *restrict pathname){
+char *nreadlink(const char *restrict pathname) {
 	char *buffer;
 	size_t bufsize = 16384;
 	buffer = checkAlloc(malloc(bufsize));
 	size_t read = readlink(pathname, buffer, bufsize);
-	if (read == -1){
+	if (read == -1) {
 		throwErrorPerror("Cannot readlink");
 		return NULL;
 	}

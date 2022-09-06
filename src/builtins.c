@@ -334,13 +334,12 @@ void pinfo(Command *c) {
 
 	FILE *stat = fopen(statfile, "r");
 
-	if (!stat){
+	if (!stat) {
 		throwError("PID doesn't exist");
 		return;
 	}
 
 	char *execpath = nreadlink(exefile);
-
 
 	int ipid = -1;
 	char status = '-';
@@ -441,10 +440,12 @@ void discover(Command *c) {
 	}
 
 	if (S_ISREG(statbuf.st_mode) && filef &&
-		(!filetofind || (fnmatch(filetofind, basename(newpath), FNM_PATHNAME) == 0))) {
+		(!filetofind ||
+		 (fnmatch(filetofind, basename(newpath), FNM_PATHNAME) == 0))) {
 		printf("%s\n", newpath);
 	} else if (S_ISDIR(statbuf.st_mode)) {
-		if (dirf && (!filetofind || fnmatch(filetofind, basename(newpath), FNM_PATHNAME) == 0))
+		if (dirf && (!filetofind ||
+					 fnmatch(filetofind, basename(newpath), FNM_PATHNAME) == 0))
 			printf("%s\n", newpath);
 		discoverTraverse(newpath, filetofind, dirf, filef);
 	}

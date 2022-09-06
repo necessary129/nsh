@@ -51,7 +51,7 @@ int interpret() {
 	if (valid) {
 		parseLine(line);
 	}
-	if (lfail){
+	if (lfail) {
 		cleanup();
 		exit(EXIT_FAILURE);
 	}
