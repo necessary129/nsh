@@ -1,7 +1,7 @@
-#include "nsh/jobs.h"
 #include <errno.h>
 #include <grp.h>
 #include <nsh/history.h>
+#include <nsh/jobs.h>
 #include <nsh/main.h>
 #include <pwd.h>
 #include <stddef.h>

@@ -1,8 +1,8 @@
-#include "nsh/history.h"
-#include "nsh/jobs.h"
 #include <lib/colors.h>
 #include <lib/error_handler.h>
 #include <nsh/builtins.h>
+#include <nsh/history.h>
+#include <nsh/jobs.h>
 #include <nsh/main.h>
 #include <nsh/prompt.h>
 #include <stddef.h>

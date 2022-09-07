@@ -1,5 +1,5 @@
-#include "lib/error_handler.h"
 #include <fcntl.h>
+#include <lib/error_handler.h>
 #include <lib/sdll.h>
 #include <nsh/history.h>
 #include <nsh/main.h>

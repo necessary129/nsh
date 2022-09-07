@@ -1,10 +1,10 @@
-#include "nsh/utils.h"
 #include <alloca.h>
 #include <fcntl.h>
 #include <lib/error_handler.h>
 #include <lib/jdll.h>
 #include <nsh/jobs.h>
 #include <nsh/main.h>
+#include <nsh/utils.h>
 #include <signal.h>
 #include <stddef.h>
 #include <stdio.h>

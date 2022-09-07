@@ -1,10 +1,10 @@
-#include "nsh/jobs.h"
-#include "nsh/main.h"
-#include "nsh/prompt.h"
 #include <lib/error_handler.h>
 #include <lib/sdll.h>
 #include <nsh/execute.h>
+#include <nsh/jobs.h>
+#include <nsh/main.h>
 #include <nsh/parser.h>
+#include <nsh/prompt.h>
 #include <nsh/signals.h>
 #include <nsh/utils.h>
 #include <stdio.h>
