@@ -21,13 +21,13 @@ struct jDElement {
 
 typedef struct jDElement jDElement;
 
-struct lDLL {
+struct jDLL {
 	jDElement *start, *end;
 	unsigned long size;
 	unsigned long mjobid;
 };
 
-typedef struct lDLL jDLL;
+typedef struct jDLL jDLL;
 
 jDLL *jcreateDLL();
 

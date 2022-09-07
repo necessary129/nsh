@@ -48,8 +48,10 @@ void jdFreeElement(jDElement *element) {
 
 void jdestroyDLL(jDLL *dll) {
 	jDElement *start = dll->start;
-	if (!start)
+	if (!start) {
+		free(dll);
 		return;
+	}
 	jDElement *next = start->next;
 	while (next) {
 		jdDeleteElement(dll, start);

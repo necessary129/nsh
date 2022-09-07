@@ -43,8 +43,10 @@ void sdFreeElement(DElement *element) {
 
 void sdestroyDLL(sDLL *dll) {
 	DElement *start = dll->start;
-	if (!start)
+	if (!start) {
+		free(dll);
 		return;
+	}
 	DElement *next = start->next;
 	while (next) {
 		sdDeleteElement(dll, start);
