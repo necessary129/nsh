@@ -1,3 +1,4 @@
+#include "nsh/jobs.h"
 #include "nsh/main.h"
 #include "nsh/prompt.h"
 #include <lib/error_handler.h>
@@ -42,6 +43,8 @@ void execute(Command *c) {
 				throwErrorPerror("Couldn't set TPGID back to parent");
 			}
 			resetFgSig();
+		} else {
+			addJob(c->name, pid);
 		}
 	}
 }

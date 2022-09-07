@@ -1,6 +1,7 @@
 #ifndef NSH_SHELL_H
 #define NSH_SHELL_H
 
+#include <lib/jdll.h>
 #include <lib/sdll.h>
 #include <nsh/history.h>
 #include <time.h>
@@ -15,6 +16,8 @@ struct ShellState {
 
 	sDLL *history;
 	char *histfile;
+
+	jDLL *jobs;
 
 	int uid;
 	char *username;

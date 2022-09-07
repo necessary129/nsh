@@ -1,3 +1,4 @@
+#include "nsh/jobs.h"
 #include <errno.h>
 #include <grp.h>
 #include <nsh/history.h>
@@ -71,6 +72,7 @@ void initShell() {
 
 	initSignal();
 	initHistory();
+	initJobs();
 
 	free(cbuffer);
 
@@ -157,6 +159,7 @@ char *nreadlink(const char *restrict pathname) {
 
 void cleanup() {
 	cleanupHistory();
+	cleanupJobs();
 	printf("\n");
 	free(shellState.currentdir);
 	free(shellState.homedir);

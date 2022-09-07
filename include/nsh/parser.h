@@ -2,11 +2,11 @@
 #define NSH_PARSER_H
 #include <lib/sdll.h>
 #include <stddef.h>
-void parseLine(const char * line);
-void parseCommand(const char * cmd);
+void parseLine(const char *line);
+void parseCommand(const char *cmd, int isbg);
 
 struct Command {
-	char * name;
+	char *name;
 	sDLL *args;
 	int bg;
 	int flag['z' - '0' + 1]; // Assuming flags are single characters

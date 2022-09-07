@@ -1,4 +1,5 @@
 #include "nsh/history.h"
+#include "nsh/jobs.h"
 #include <lib/colors.h>
 #include <lib/error_handler.h>
 #include <nsh/builtins.h>
@@ -84,5 +85,6 @@ int interpret() {
 		shellState.lastExecTime = 0;
 		updatePrompt();
 	}
+	reapJobs();
 	return valid && !bquit;
 }

@@ -16,19 +16,21 @@ void parseLine(const char *line) {
 	char *command;
 	command = strtok_r(linecopy, ";&\n", &saveptr);
 	while (command) {
-		parseCommand(command);
+		int isbg = line[command - linecopy + strlen(command)] == '&';
+		parseCommand(command, isbg);
 		command = strtok_r(NULL, ";&\n", &saveptr);
 	}
 	free(linecopy);
 }
 
-void parseCommand(const char *cmd) {
+void parseCommand(const char *cmd, int isbg) {
 	char *saveptr;
 	char *cmdcopy = strdup(cmd);
 	char *arg;
 	Command c = {0};
 	arg = strtok_r(cmdcopy, " \t", &saveptr);
 	c.name = strdup(arg);
+	c.bg = isbg;
 	size_t nmargs = 10;
 	c.args = screateDLL();
 	sdAppendElement(c.args, arg);
