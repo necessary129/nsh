@@ -1,3 +1,4 @@
+#include "nsh/history.h"
 #include <lib/colors.h>
 #include <lib/error_handler.h>
 #include <nsh/builtins.h>
@@ -7,6 +8,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 #include <nsh/parser.h>
 #include <nsh/utils.h>
@@ -25,17 +27,34 @@ void setPrompt() {
 			checkAlloc(realloc(shellState.promptdir, strlen(cwd) + 1));
 		strcpy(shellState.promptdir, cwd);
 	}
+	updatePrompt();
+}
+
+void updatePrompt() {
 	shellState.prompt = checkAlloc(
 		realloc(shellState.prompt, strlen(shellState.username) +
 									   strlen(shellState.hostname) +
 									   strlen(shellState.promptdir) + 256));
-	sprintf(shellState.prompt,
-			CGETCOLOR(BLUE) "[" CRESET CGETCOLOR(RED) "%s" CRESET
-				CGETCOLOR(BRIGHT_WHITE) "@" CRESET CGETCOLOR(
-					CYAN) "%s" CRESET "\t" CGETCOLOR(CYAN) "%s" CRESET
-					CGETCOLOR(BLUE) "]" CRESET CGETCOLOR(
-						GREEN) "\n\u276f " CRESET CTGETCOLOR(NORMAL, BLUE),
-			shellState.username, shellState.hostname, shellState.promptdir);
+
+	if (!shellState.lastExecTime) {
+		sprintf(shellState.prompt,
+				CGETCOLOR(BLUE) "[" CRESET CGETCOLOR(RED) "%s" CRESET
+					CGETCOLOR(BRIGHT_WHITE) "@" CRESET CGETCOLOR(
+						CYAN) "%s" CRESET "\t" CGETCOLOR(CYAN) "%s" CRESET
+						CGETCOLOR(BLUE) "]" CRESET CGETCOLOR(
+							GREEN) "\n\u276f " CRESET CTGETCOLOR(NORMAL, BLUE),
+				shellState.username, shellState.hostname, shellState.promptdir);
+	} else {
+		sprintf(shellState.prompt,
+				CGETCOLOR(BLUE) "[" CRESET CGETCOLOR(RED) "%s" CRESET CGETCOLOR(
+					BRIGHT_WHITE) "@" CRESET
+					CGETCOLOR(CYAN) "%s" CRESET "\t" CGETCOLOR(
+						CYAN) "%s " CRESET CGETCOLOR(PURPLE) "took %lus" CRESET
+						CGETCOLOR(BLUE) "]" CRESET CGETCOLOR(
+							GREEN) "\n\u276f " CRESET CTGETCOLOR(NORMAL, BLUE),
+				shellState.username, shellState.hostname, shellState.promptdir,
+				shellState.lastExecTime);
+	}
 }
 
 int interpret() {
@@ -48,12 +67,22 @@ int interpret() {
 	nread = getline(&line, &maxLen, stdin);
 	printf(CRESET);
 	int valid = nread > 0;
+	time_t before = time(NULL);
 	if (valid) {
 		parseLine(line);
 	}
+	time_t diff = time(NULL) - before;
+	appendHistory(line);
 	if (lfail) {
 		cleanup();
 		exit(EXIT_FAILURE);
+	}
+	if (diff > 1) {
+		shellState.lastExecTime = diff;
+		updatePrompt();
+	} else if (shellState.lastExecTime) {
+		shellState.lastExecTime = 0;
+		updatePrompt();
 	}
 	return valid && !bquit;
 }

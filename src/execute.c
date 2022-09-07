@@ -1,13 +1,14 @@
-#include "lib/error_handler.h"
-#include "nsh/utils.h"
+#include "nsh/main.h"
+#include "nsh/prompt.h"
+#include <lib/error_handler.h>
 #include <lib/sdll.h>
 #include <nsh/execute.h>
 #include <nsh/parser.h>
 #include <nsh/signals.h>
+#include <nsh/utils.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/wait.h>
-#include <time.h>
 #include <unistd.h>
 
 void execute(Command *c) {
@@ -36,6 +37,7 @@ void execute(Command *c) {
 			if (waitpid(pid, NULL, WUNTRACED) == -1) {
 				throwErrorPerror("Could not wait for child");
 			}
+
 			if (tcsetpgrp(STDIN_FILENO, getpgid(0)) == -1) {
 				throwErrorPerror("Couldn't set TPGID back to parent");
 			}

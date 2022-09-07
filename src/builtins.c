@@ -28,6 +28,7 @@ struct builtin builtinCommands[] = {
 	{"pinfo",		0,			1,			0,			pinfo},
 	{"quit", 		0,			0,			0,			quit},
 	{"discover", 	0,			2,			1,			discover},
+	{"history",		0,			0,			0,			history},
 	{0}
 };
 // clang-format on
@@ -452,4 +453,11 @@ void discover(Command *c) {
 
 	free(newpath);
 	free(filetofind);
+}
+
+void history(Command *c) {
+	for (DElement *el = sdGetElement(shellState.history, 0); el != NULL;
+		 el = sdNext(el)) {
+		printf("%s", el->data);
+	}
 }

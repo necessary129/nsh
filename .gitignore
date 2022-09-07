@@ -11,6 +11,7 @@ compile_commands.json
 CTestTestfile.cmake
 _deps
 
+.nsh_history
 
 .cache/
 # Prerequisites
@@ -65,4 +66,3 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
-

@@ -1,5 +1,6 @@
 #include <errno.h>
 #include <grp.h>
+#include <nsh/history.h>
 #include <nsh/main.h>
 #include <pwd.h>
 #include <stddef.h>
@@ -69,6 +70,7 @@ void initShell() {
 	setPrompt();
 
 	initSignal();
+	initHistory();
 
 	free(cbuffer);
 
@@ -154,6 +156,7 @@ char *nreadlink(const char *restrict pathname) {
 }
 
 void cleanup() {
+	cleanupHistory();
 	printf("\n");
 	free(shellState.currentdir);
 	free(shellState.homedir);

@@ -11,10 +11,11 @@ void flagcheck(Command *c);
 void pinfo(Command *c);
 void quit(Command *c);
 void discover(Command *c);
+void history(Command *c);
 
 extern int bquit;
 
-int cdir(const char * path);
+int cdir(const char *path);
 
 struct builtin {
 	char name[50];
@@ -26,7 +27,6 @@ struct builtin {
 
 int parseBuiltin(struct builtin *builtin, Command *c);
 void lsPfile(char *fullpath, int longf);
-void lsProcess(char * s, int allf, int longf);
-
+void lsProcess(char *s, int allf, int longf);
 
 #endif
