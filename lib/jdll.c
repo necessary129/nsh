@@ -7,6 +7,7 @@
 
 jDLL *jcreateDLL() {
 	jDLL *newDLL = checkAlloc(calloc(1, sizeof *newDLL));
+	newDLL->mjobid = 1;
 	return newDLL;
 }
 
@@ -15,6 +16,7 @@ void jdAppendElement(jDLL *dll, jDData s) {
 	newEl->prev = dll->end;
 	newEl->data = s;
 	newEl->next = NULL;
+	newEl->data.jid = 0;
 	if (!dll->start)
 		dll->start = newEl;
 	if (dll->end)
@@ -55,7 +57,6 @@ void jdestroyDLL(jDLL *dll) {
 		next = next->next;
 	}
 	jdDeleteElement(dll, start);
-	assert(dll->size == 0);
 	free(dll);
 }
 

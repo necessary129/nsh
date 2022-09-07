@@ -30,7 +30,9 @@ void addJob(char *name, pid_t pid) {
 	sprintf(pidS, "%d", pid);
 	job.name = checkAlloc(strdup(name));
 	job.pidStr = checkAlloc(strdup(pidS));
+	job.jid = shellState.jobs->mjobid++;
 	jdAppendElement(shellState.jobs, job);
+	printf("[%lu] %d\n", job.jid, job.pid);
 }
 
 jDElement *getJob(pid_t pid) {
@@ -58,10 +60,11 @@ void removeJob(jDElement *el) { jdDeleteElement(shellState.jobs, el); }
 void cleanupJobs() {
 	for (jDElement *el = jdGetElement(shellState.jobs, 0); el != NULL;
 		 el = jdNext(el)) {
-		if (waitpid(el->data.pid, NULL, WNOHANG) == 0) {
+		if (waitpid(el->data.pid, NULL, WNOHANG) <= 0) {
 			kill(el->data.pid, SIGHUP);
 		}
 	}
 	free(toReap);
 	jdestroyDLL(shellState.jobs);
+	// free(shellState.jobs);
 }

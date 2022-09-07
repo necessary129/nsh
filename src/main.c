@@ -10,5 +10,5 @@ int main() {
 	initShell();
 	while (interpret())
 		;
-	cleanup();
+	// cleanup();
 }

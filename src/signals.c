@@ -60,30 +60,34 @@ void handleSIGCHLD(int sig, siginfo_t *info, void *ucontext) {
 			return;
 
 		if (WIFEXITED(status)) {
-			asyncSigSafeWrite(STDOUT_FILENO, "\n");
-			asyncSigSafeWrite(STDOUT_FILENO, jobel->data.name);
-			asyncSigSafeWrite(STDOUT_FILENO, " with PID ");
-			asyncSigSafeWrite(STDOUT_FILENO, jobel->data.pidStr);
-			asyncSigSafeWrite(STDOUT_FILENO, " exited normally.\n");
+			asyncSigSafeWrite(STDERR_FILENO, "\n");
+			asyncSigSafeWrite(STDERR_FILENO, jobel->data.name);
+			asyncSigSafeWrite(STDERR_FILENO, " with PID ");
+			asyncSigSafeWrite(STDERR_FILENO, jobel->data.pidStr);
+			asyncSigSafeWrite(STDERR_FILENO, " exited normally with ");
+			if (WEXITSTATUS(status) == 0)
+				asyncSigSafeWrite(STDERR_FILENO, "success status code.\n");
+			else
+				asyncSigSafeWrite(STDERR_FILENO, "an error status code.\n");
 			if (prompting)
 				pasyncPrompt();
 			// Cannot just reap because free is not async safe.
 			markForReap(jobel);
 		} else if (WIFSTOPPED(status)) {
-			asyncSigSafeWrite(STDOUT_FILENO, "\n");
-			asyncSigSafeWrite(STDOUT_FILENO, jobel->data.name);
-			asyncSigSafeWrite(STDOUT_FILENO, " with PID ");
-			asyncSigSafeWrite(STDOUT_FILENO, jobel->data.pidStr);
-			asyncSigSafeWrite(STDOUT_FILENO, " stopped normally.\n");
+			asyncSigSafeWrite(STDERR_FILENO, "\n");
+			asyncSigSafeWrite(STDERR_FILENO, jobel->data.name);
+			asyncSigSafeWrite(STDERR_FILENO, " with PID ");
+			asyncSigSafeWrite(STDERR_FILENO, jobel->data.pidStr);
+			asyncSigSafeWrite(STDERR_FILENO, " stopped normally.\n");
 			if (prompting)
 				pasyncPrompt();
 			jobel->data.status = status;
 		} else {
-			asyncSigSafeWrite(STDOUT_FILENO, "\n");
-			asyncSigSafeWrite(STDOUT_FILENO, jobel->data.name);
-			asyncSigSafeWrite(STDOUT_FILENO, " with PID ");
-			asyncSigSafeWrite(STDOUT_FILENO, jobel->data.pidStr);
-			asyncSigSafeWrite(STDOUT_FILENO, " exited abnormally.\n");
+			asyncSigSafeWrite(STDERR_FILENO, "\n");
+			asyncSigSafeWrite(STDERR_FILENO, jobel->data.name);
+			asyncSigSafeWrite(STDERR_FILENO, " with PID ");
+			asyncSigSafeWrite(STDERR_FILENO, jobel->data.pidStr);
+			asyncSigSafeWrite(STDERR_FILENO, " exited abnormally.\n");
 
 			if (prompting)
 				pasyncPrompt();

@@ -74,6 +74,7 @@ void initShell() {
 	initHistory();
 	initJobs();
 
+	atexit(cleanup);
 	free(cbuffer);
 
 	free(hostname);

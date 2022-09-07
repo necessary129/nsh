@@ -7,22 +7,24 @@ struct Job {
 	pid_t pid;
 	int status;
 	char *pidStr;
+	unsigned long jid;
 };
 
 typedef struct Job Job;
 
 typedef Job jDData;
 
-struct lDElement {
-	struct lDElement *prev, *next;
+struct jDElement {
+	struct jDElement *prev, *next;
 	jDData data;
 };
 
-typedef struct lDElement jDElement;
+typedef struct jDElement jDElement;
 
 struct lDLL {
 	jDElement *start, *end;
 	unsigned long size;
+	unsigned long mjobid;
 };
 
 typedef struct lDLL jDLL;

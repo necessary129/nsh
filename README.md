@@ -54,4 +54,4 @@ Prints the last 10 commands entered in shell.
 1. Home directory is defined as the directory where the shell is initialized: Assignment specification.
 1. Argument parsing is very rudimentary.
 1. Environment variables are not touched: Assignment specification(?)
-
+1. Job id's are always increasing.

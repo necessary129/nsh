@@ -29,6 +29,10 @@ void parseCommand(const char *cmd, int isbg) {
 	char *arg;
 	Command c = {0};
 	arg = strtok_r(cmdcopy, " \t", &saveptr);
+	if (arg == NULL) {
+		free(cmdcopy);
+		return;
+	}
 	c.name = strdup(arg);
 	c.bg = isbg;
 	size_t nmargs = 10;
