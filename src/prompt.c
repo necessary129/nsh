@@ -67,6 +67,7 @@ int interpret() {
 	printf("%s", shellState.prompt);
 	nread = getline(&line, &maxLen, stdin);
 	printf(CRESET);
+	fflush(stdout);
 	int valid = nread > 0;
 	time_t before = time(NULL);
 	if (valid) {
