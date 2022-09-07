@@ -72,6 +72,14 @@ DElement *sdGetElement(sDLL *dll, unsigned long n) {
 	return el;
 }
 
+DElement *sdGetLastNthElement(sDLL *dll, unsigned long n) {
+	DElement *el = dll->end;
+	for (unsigned int i = 0; i < n && el != NULL && el->prev != NULL;
+		 i++, el = sdPrev(el))
+		;
+	return el;
+}
+
 sDData *sdToArray(sDLL *dll) {
 	sDData *arr = checkAlloc(calloc(dll->size + 1, sizeof *arr));
 	DElement *el = dll->start;

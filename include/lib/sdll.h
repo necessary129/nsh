@@ -1,7 +1,7 @@
 #ifndef LIB_SDLL_H
 #define LIB_SDLL_H
 
-typedef char * sDData;
+typedef char *sDData;
 
 struct sDElement {
 	struct sDElement *prev, *next;
@@ -17,24 +17,25 @@ struct sDLL {
 
 typedef struct sDLL sDLL;
 
+sDLL *screateDLL();
 
-sDLL * screateDLL();
+void sdAppendElement(sDLL *dll, sDData s);
 
-void sdAppendElement(sDLL * dll, sDData s);
+void sdDeleteElement(sDLL *dll, DElement *element);
 
-void sdDeleteElement(sDLL * dll, DElement * element);
-
-void sdFreeElement(DElement * element);
+void sdFreeElement(DElement *element);
 
 sDData sdGetData(DElement *element);
 
-DElement * sdNext(DElement *element);
+DElement *sdNext(DElement *element);
 
-DElement * sdPrev(DElement * element);
+DElement *sdPrev(DElement *element);
 
-DElement * sdGetElement(sDLL * dll, unsigned long n);
+DElement *sdGetElement(sDLL *dll, unsigned long n);
 
-sDData*sdToArray(sDLL *dll);
+DElement *sdGetLastNthElement(sDLL *dll, unsigned long n);
+
+sDData *sdToArray(sDLL *dll);
 
 void sdestroyDLL(sDLL *dll);
 

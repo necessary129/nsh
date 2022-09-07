@@ -456,7 +456,7 @@ void discover(Command *c) {
 }
 
 void history(Command *c) {
-	for (DElement *el = sdGetElement(shellState.history, 0); el != NULL;
+	for (DElement *el = sdGetLastNthElement(shellState.history, 9); el != NULL;
 		 el = sdNext(el)) {
 		printf("%s", el->data);
 	}
