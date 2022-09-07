@@ -20,15 +20,15 @@ void appendHistory(char *s) {
 void initHistory() {
 	shellState.history = screateDLL();
 	shellState.histfile = checkAlloc(
-		malloc(strlen(shellState.homedir) + strlen(".nsh_history") + 1));
+		malloc(strlen(shellState.homedir) + strlen("/.nsh_history") + 1));
 	sprintf(shellState.histfile, "%s/.nsh_history", shellState.homedir);
 	FILE *histfile = fopen(shellState.histfile, "r");
 	if (!histfile) {
 		throwErrorPerror("Fetching history failed");
 		return;
 	}
-	char *histline;
-	size_t maxLen;
+	size_t maxLen = 1024;
+	char *histline = checkAlloc(malloc(maxLen));
 	int n;
 
 	while ((n = getline(&histline, &maxLen, histfile)) > 0) {
