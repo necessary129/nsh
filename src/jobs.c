@@ -32,7 +32,7 @@ void addJob(char *name, pid_t pid) {
 	job.pidStr = checkAlloc(strdup(pidS));
 	job.jid = shellState.jobs->mjobid++;
 	jdAppendElement(shellState.jobs, job);
-	printf("[%lu] %d\n", job.jid, job.pid);
+	fprintf(stderr, "[%lu] %d\n", job.jid, job.pid);
 }
 
 jDElement *getJob(pid_t pid) {

@@ -32,22 +32,35 @@ ninja -C
 
 You should have the shell in `nsh` in the `build/bin/` directory.
 
-## Commands and features
+## Commands
 
-- ### `cd`
+### `cd`
 Changes the directory.
 
-- ### `pwd`
+### `pwd`
 Prints the current directory
 
-- ### `echo`
+### `echo`
 Prints the arguments
 
-- ### `discover`
-Rudimentary `find` equivalent.
+### `discover`
+Rudimentary `find` equivalent. With glob searching.
 
-- ### `history`
+### `history`
 Prints the last 10 commands entered in shell.
+
+### `pinfo`
+Gets process info.
+
+### `quit`
+Quits the shell.
+
+... other commands exec'd.
+
+## Features
+
+- Prints the execution time for all foreground commands.
+- Background process support.
 
 ## Quirks
 
