@@ -34,10 +34,7 @@ void resetFgSig() {
 	signal(SIGTTOU, SIG_DFL);
 }
 
-void pasyncPrompt() {
-	asyncSigSafeWrite(STDOUT_FILENO, "\n");
-	asyncSigSafeWrite(STDOUT_FILENO, shellState.prompt);
-}
+void pasyncPrompt() { asyncSigSafeWrite(STDOUT_FILENO, shellState.prompt); }
 
 // SIG_IGN was being transferred to children also
 void handleSIGTSTP(int sig, siginfo_t *info, void *uncontext){};
@@ -45,6 +42,7 @@ void handleSIGTSTP(int sig, siginfo_t *info, void *uncontext){};
 void handleSIGINT(int sig, siginfo_t *info, void *uncontext) {
 	asyncSigSafeWrite(STDOUT_FILENO, "\n");
 	asyncSigSafeWrite(STDOUT_FILENO, shellState.prompt);
+	asyncSigSafeWrite(STDOUT_FILENO, "\n");
 	pasyncPrompt();
 }
 
@@ -66,8 +64,9 @@ void handleSIGCHLD(int sig, siginfo_t *info, void *ucontext) {
 			asyncSigSafeWrite(STDOUT_FILENO, jobel->data.name);
 			asyncSigSafeWrite(STDOUT_FILENO, " with PID ");
 			asyncSigSafeWrite(STDOUT_FILENO, jobel->data.pidStr);
-			asyncSigSafeWrite(STDOUT_FILENO, " exited normally.");
-			pasyncPrompt();
+			asyncSigSafeWrite(STDOUT_FILENO, " exited normally.\n");
+			if (prompting)
+				pasyncPrompt();
 			// Cannot just reap because free is not async safe.
 			markForReap(jobel);
 		} else if (WIFSTOPPED(status)) {
@@ -75,18 +74,22 @@ void handleSIGCHLD(int sig, siginfo_t *info, void *ucontext) {
 			asyncSigSafeWrite(STDOUT_FILENO, jobel->data.name);
 			asyncSigSafeWrite(STDOUT_FILENO, " with PID ");
 			asyncSigSafeWrite(STDOUT_FILENO, jobel->data.pidStr);
-			asyncSigSafeWrite(STDOUT_FILENO, " stopped normally.");
-			pasyncPrompt();
+			asyncSigSafeWrite(STDOUT_FILENO, " stopped normally.\n");
+			if (prompting)
+				pasyncPrompt();
 			jobel->data.status = status;
 		} else {
 			asyncSigSafeWrite(STDOUT_FILENO, "\n");
 			asyncSigSafeWrite(STDOUT_FILENO, jobel->data.name);
 			asyncSigSafeWrite(STDOUT_FILENO, " with PID ");
 			asyncSigSafeWrite(STDOUT_FILENO, jobel->data.pidStr);
-			asyncSigSafeWrite(STDOUT_FILENO, " exited abnormally.");
-			pasyncPrompt();
+			asyncSigSafeWrite(STDOUT_FILENO, " exited abnormally.\n");
+
+			if (prompting)
+				pasyncPrompt();
 			markForReap(jobel);
 		}
+		// fsync(STDOUT_FILENO);
 	}
 }
 

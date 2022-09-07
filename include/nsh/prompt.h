@@ -3,6 +3,8 @@
 
 #define MAX_LINE_LENGTH 8192
 extern char *line;
+extern int prompting;
+
 void setPrompt();
 void updatePrompt();
 int interpret();

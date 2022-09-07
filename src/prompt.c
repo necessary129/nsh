@@ -15,6 +15,8 @@
 #include <nsh/utils.h>
 
 char *line;
+int prompting = 0;
+
 void setPrompt() {
 	setCwd();
 	const char *cwd = shellState.currentdir;
@@ -43,18 +45,18 @@ void updatePrompt() {
 					CGETCOLOR(BRIGHT_WHITE) "@" CRESET CGETCOLOR(
 						CYAN) "%s" CRESET "\t" CGETCOLOR(CYAN) "%s" CRESET
 						CGETCOLOR(BLUE) "]" CRESET CGETCOLOR(
-							GREEN) "\n\u276f " CRESET CTGETCOLOR(NORMAL, BLUE),
+							GREEN) "\n\u276f " CRESET,
 				shellState.username, shellState.hostname, shellState.promptdir);
 	} else {
-		sprintf(shellState.prompt,
-				CGETCOLOR(BLUE) "[" CRESET CGETCOLOR(RED) "%s" CRESET CGETCOLOR(
-					BRIGHT_WHITE) "@" CRESET
-					CGETCOLOR(CYAN) "%s" CRESET "\t" CGETCOLOR(
-						CYAN) "%s " CRESET CGETCOLOR(PURPLE) "took %lus" CRESET
-						CGETCOLOR(BLUE) "]" CRESET CGETCOLOR(
-							GREEN) "\n\u276f " CRESET CTGETCOLOR(NORMAL, BLUE),
-				shellState.username, shellState.hostname, shellState.promptdir,
-				shellState.lastExecTime);
+		sprintf(
+			shellState.prompt,
+			CGETCOLOR(BLUE) "[" CRESET CGETCOLOR(RED) "%s" CRESET
+				CGETCOLOR(BRIGHT_WHITE) "@" CRESET CGETCOLOR(
+					CYAN) "%s" CRESET "\t" CGETCOLOR(CYAN) "%s " CRESET
+					CGETCOLOR(PURPLE) "took %lus" CRESET CGETCOLOR(
+						BLUE) "]" CRESET CGETCOLOR(GREEN) "\n\u276f " CRESET,
+			shellState.username, shellState.hostname, shellState.promptdir,
+			shellState.lastExecTime);
 	}
 }
 
@@ -65,9 +67,13 @@ int interpret() {
 	int nread;
 	size_t maxLen = MAX_LINE_LENGTH;
 	printf("%s", shellState.prompt);
+	if (shellState.lastExecTime) {
+		shellState.lastExecTime = 0;
+		updatePrompt();
+	}
+	prompting = 1;
 	nread = getline(&line, &maxLen, stdin);
-	printf(CRESET);
-	fflush(stdout);
+	prompting = 0;
 	int valid = nread > 0;
 	time_t before = time(NULL);
 	if (valid) {
@@ -81,9 +87,6 @@ int interpret() {
 	}
 	if (diff > 1) {
 		shellState.lastExecTime = diff;
-		updatePrompt();
-	} else if (shellState.lastExecTime) {
-		shellState.lastExecTime = 0;
 		updatePrompt();
 	}
 	reapJobs();
