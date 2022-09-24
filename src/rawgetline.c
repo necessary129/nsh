@@ -42,7 +42,9 @@ size_t myGetline(char **line, size_t *maxLen) {
 			case C_SUB:
 				break;
 			case C_ETX:
+				printf("\n");
 				resetLine();
+				break;
 			case C_ESC:
 				if (read(STDIN_FILENO, escbuf, 2) == 2) {
 				};

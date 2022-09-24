@@ -1,4 +1,5 @@
-
+#ifndef NSH_RAWGETLINE_H
+#define NSH_RAWGETLINE_H
 #include <stddef.h>
 #define C_LF 0x0A
 #define C_BS 0x08
@@ -12,3 +13,5 @@
 #define C_ESC 0x1B
 
 size_t myGetline(char **line, size_t *maxLen);
+
+#endif
