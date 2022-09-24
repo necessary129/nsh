@@ -31,18 +31,23 @@ void execute(Command *c) {
 		return;
 	} else {
 		if (!c->bg) {
-			makeFgSig();
-			if (tcsetpgrp(STDIN_FILENO, pid) == -1) {
-				throwErrorPerror("Couldn't set TPGID");
+			int istty = isatty(STDIN_FILENO);
+			if (istty) {
+				makeFgSig();
+
+				if (tcsetpgrp(STDIN_FILENO, pid) == -1) {
+					throwErrorPerror("Couldn't set TPGID");
+				}
 			}
 			if (waitpid(pid, NULL, WUNTRACED) == -1) {
 				throwErrorPerror("Could not wait for child");
 			}
-
-			if (tcsetpgrp(STDIN_FILENO, getpgid(0)) == -1) {
-				throwErrorPerror("Couldn't set TPGID back to parent");
+			if (istty) {
+				if (tcsetpgrp(STDIN_FILENO, getpgid(0)) == -1) {
+					throwErrorPerror("Couldn't set TPGID back to parent");
+				}
+				resetFgSig();
 			}
-			resetFgSig();
 		} else {
 			addJob(c->name, pid);
 		}

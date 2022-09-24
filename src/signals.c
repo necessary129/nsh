@@ -12,7 +12,9 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
-void asyncSigSafeWrite(int fd, char *s) { write(fd, s, strlen(s)); }
+static inline void asyncSigSafeWrite(int fd, char *s) {
+	write(fd, s, strlen(s));
+}
 
 void setHandler(int sig, void (*handler)(int, siginfo_t *, void *)) {
 	struct sigaction sa = {0};
@@ -34,7 +36,10 @@ void resetFgSig() {
 	signal(SIGTTOU, SIG_DFL);
 }
 
-void pasyncPrompt() { asyncSigSafeWrite(STDOUT_FILENO, shellState.prompt); }
+void pasyncPrompt() {
+	asyncSigSafeWrite(STDOUT_FILENO, shellState.prompt);
+	asyncSigSafeWrite(STDOUT_FILENO, line);
+}
 
 // SIG_IGN was being transferred to children also
 void handleSIGTSTP(int sig, siginfo_t *info, void *uncontext){};
@@ -98,7 +103,7 @@ void handleSIGCHLD(int sig, siginfo_t *info, void *ucontext) {
 }
 
 void initSignal() {
-	setHandler(SIGTSTP, handleSIGTSTP);
-	setHandler(SIGINT, handleSIGINT);
+	// setHandler(SIGTSTP, handleSIGTSTP);
+	// setHandler(SIGINT, handleSIGINT);
 	setHandler(SIGCHLD, handleSIGCHLD);
 }

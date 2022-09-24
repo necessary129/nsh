@@ -1,3 +1,4 @@
+#include <ctype.h>
 #include <lib/colors.h>
 #include <lib/error_handler.h>
 #include <nsh/builtins.h>
@@ -9,13 +10,41 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <termios.h>
 #include <time.h>
 
+#include <lib/error_handler.h>
 #include <nsh/parser.h>
+#include <nsh/rawgetline.h>
 #include <nsh/utils.h>
+#include <unistd.h>
 
 char *line;
 int prompting = 0;
+
+int rawMode = 0;
+
+size_t nread = 0;
+
+struct termios origTermios;
+
+void disableRawMode() {
+	if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &origTermios) != -1) {
+		rawMode = 0;
+	}
+}
+void enableRawMode() {
+	if (tcgetattr(STDIN_FILENO, &origTermios) == -1) {
+		rawMode = 0;
+		return;
+	}
+	rawMode = 1;
+	atexit(disableRawMode);
+	struct termios raw = origTermios;
+	raw.c_lflag &= ~(ICANON | ECHO | ISIG);
+	if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw) == -1)
+		rawMode = 0;
+}
 
 void setPrompt() {
 	setCwd();
@@ -60,24 +89,41 @@ void updatePrompt() {
 	}
 }
 
+static inline void printPrompt() {
+	printf("%s", shellState.prompt);
+	printf("%s", line);
+}
+
+void resetLine() {
+	memset(line, 0, nread);
+	if (prompting)
+		printPrompt();
+}
+
 int interpret() {
+	enableRawMode();
 	if (!line) {
 		line = checkAlloc(malloc(MAX_LINE_LENGTH));
 	}
-	int nread;
 	size_t maxLen = MAX_LINE_LENGTH;
-	printf("%s", shellState.prompt);
+	printPrompt();
 	if (shellState.lastExecTime) {
 		shellState.lastExecTime = 0;
 		updatePrompt();
 	}
 	prompting = 1;
-	nread = getline(&line, &maxLen, stdin);
+	if (rawMode)
+		nread = myGetline(&line, &maxLen);
+	else
+		nread = getline(&line, &maxLen, stdin);
+	if (rawMode)
+		disableRawMode();
 	prompting = 0;
 	int valid = nread > 0;
 	time_t before = time(NULL);
 	if (valid) {
 		parseLine(line);
+		memset(line, 0, nread);
 	}
 	time_t diff = time(NULL) - before;
 	appendHistory(line);
