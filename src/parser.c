@@ -1,7 +1,7 @@
-#include "nsh/execute.h"
-#include "nsh/history.h"
-#include "nsh/jobsll.h"
-#include "nsh/main.h"
+#include <nsh/execute.h>
+#include <nsh/history.h>
+#include <nsh/jobsll.h>
+#include <nsh/main.h>
 #include <fcntl.h>
 #include <lib/error_handler.h>
 #include <stddef.h>
@@ -78,6 +78,7 @@ Command *parseCmd(const char *cmd) {
 		}
 		sdAppendElement(c->args, arg);
 	}
+	free(delims);
 	free(cmdcopy);
 	return c;
 }

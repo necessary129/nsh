@@ -12,4 +12,5 @@ void initJobs();
 void markForReap(JobProcess *proc);
 
 void reapJobs();
+void cleanupJobs();
 #endif

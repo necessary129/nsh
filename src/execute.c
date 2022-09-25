@@ -1,4 +1,4 @@
-#include "nsh/jobsll.h"
+#include <nsh/jobsll.h>
 #include <fcntl.h>
 #include <lib/error_handler.h>
 #include <lib/sdll.h>
@@ -21,7 +21,12 @@ void execProc(JobProcess *proc, int infd, int outfd) {
 	if (!proc->job->isbg) {
 		makeForeground(proc->job->pgid);
 	}
-	resetFgSig();
+	for (int i = 0; i < 32; i++) {
+		struct sigaction action;
+		action.sa_handler = SIG_DFL;
+		action.sa_flags = 0;
+		sigaction(i, &action, NULL);
+	}
 
 	if (proc->command->infile)
 		if ((infd = open(proc->command->infile, O_RDONLY)) < 0)

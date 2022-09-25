@@ -1,6 +1,6 @@
-#include "lib/error_handler.h"
-#include "nsh/jobsll.h"
-#include "nsh/main.h"
+#include <lib/error_handler.h>
+#include <nsh/jobsll.h>
+#include <nsh/main.h>
 #include <nsh/jobs.h>
 #include <signal.h>
 #include <stdlib.h>
@@ -77,4 +77,9 @@ void reapJobs() {
 			deleteJob(shellState.jobs, job);
 	}
 	sigprocmask(SIG_UNBLOCK, &block, NULL);
+}
+
+void cleanupJobs() {
+	deleteJobsDLL(shellState.jobs);
+	free(toReap);
 }

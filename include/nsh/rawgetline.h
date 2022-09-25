@@ -13,5 +13,5 @@
 #define C_ESC 0x1B
 
 size_t myGetline(char **line, size_t *maxLen);
-
+void cleanupPreds();
 #endif

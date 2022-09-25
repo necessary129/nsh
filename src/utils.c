@@ -1,3 +1,5 @@
+#include <nsh/autocomplete.h>
+#include <nsh/rawgetline.h>
 #include <errno.h>
 #include <grp.h>
 #include <nsh/history.h>
@@ -54,7 +56,7 @@ char *resolveTilde(char *s) {
 void initShell() {
 	shellState.shellstdin = STDIN_FILENO;
 	if (!isatty(shellState.shellstdin)) {
-		throwError("Not a tty");
+		throwError("Not a tty.");
 		exit(EXIT_FAILURE);
 	}
 	pid_t pid = getpid();
@@ -153,6 +155,7 @@ char *formatTime(time_t tim, char *fmt, int ty) {
 	char *buffer = checkAlloc(malloc(sizeof *buffer * size));
 	if (strftime(buffer, size, mfmt, broken) == 0) {
 		throwError("Conversion failed");
+		free(buffer);
 		return NULL;
 	}
 	char *new = checkAlloc(strdup(buffer));
@@ -163,20 +166,25 @@ char *formatTime(time_t tim, char *fmt, int ty) {
 char *nreadlink(const char *restrict pathname) {
 	char *buffer;
 	size_t bufsize = 16384;
-	buffer = checkAlloc(malloc(bufsize));
+	buffer = checkAlloc(malloc(sizeof *buffer * bufsize));
 	size_t read = readlink(pathname, buffer, bufsize);
 	if (read == -1) {
 		throwErrorPerror("Cannot readlink");
+		free(buffer);
 		return NULL;
 	}
 	buffer[read] = '\0';
-	return checkAlloc(realloc(buffer, read + 1));
+	char *newpath = checkAlloc(strdup(buffer));
+	free(buffer);
+	return newpath;
 }
 
 void cleanup() {
 	cleanupHistory();
 	disableRawMode();
-	// cleanupJobs();
+	cleanupJobs();
+	cleanupFilter();
+	cleanupPreds();
 	printf("\n");
 	free(shellState.currentdir);
 	free(shellState.homedir);

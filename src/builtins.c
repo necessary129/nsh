@@ -1,4 +1,4 @@
-#include "nsh/jobs.h"
+#include <nsh/jobs.h>
 #include <alloca.h>
 #include <dirent.h>
 #include <fcntl.h>
@@ -84,11 +84,12 @@ void runCommand(Command *c) {
 	int infd;
 	int outfd;
 
-	if (c->infile)
+	if (c->infile) {
 		if ((infd = open(c->infile, O_RDONLY)) < 0)
 			throwErrorPerror("Could not open input file");
-	dup2(infd, STDIN_FILENO);
-	close(infd);
+		dup2(infd, STDIN_FILENO);
+		close(infd);
+	}
 
 	if (c->outfile) {
 		if ((outfd = open(c->outfile,
@@ -162,12 +163,7 @@ void lsProcess(char *s, int allf, int longf) {
 		char *newpath = checkAlloc(
 			malloc(strlen(path) + 1 + strlen(namelist[i]->d_name) + 1));
 		sprintf(newpath, "%s/%s", path, namelist[i]->d_name);
-
-		// char *correctpath = checkAlloc(realpath(newpath, NULL));
-		// char * newpath = checkAlloc(realpath(namelist[i]->d_name,NULL));
-		// printf("\t%s\n", newpath);
 		lsPfile(newpath, longf);
-		// free(correctpath);
 		free(newpath);
 		free(namelist[i]);
 	}
@@ -356,7 +352,7 @@ void echo(Command *c) {
 void pwd(Command *c) { printf("%s\n", shellState.currentdir); }
 
 void pinfo(Command *c) {
-	char *pid = checkAlloc(calloc(16, sizeof *pid));
+	char *pid = checkAlloc(calloc(200, sizeof *pid));
 
 	if (c->args->size == 2) {
 		sprintf(pid, "%s", sdGetData(sdGetElement(c->args, 1)));
@@ -365,9 +361,9 @@ void pinfo(Command *c) {
 	}
 
 	char *statfile =
-		checkAlloc(calloc(5 + strlen(pid) + 5 + 1, sizeof *statfile));
+		checkAlloc(calloc(6 + strlen(pid) + 5 + 3, sizeof *statfile));
 	char *exefile =
-		checkAlloc(calloc(5 + strlen(pid) + 4 + 1, sizeof *exefile));
+		checkAlloc(calloc(6 + strlen(pid) + 4 + 3, sizeof *exefile));
 
 	sprintf(statfile, "/proc/%s/stat", pid);
 	sprintf(exefile, "/proc/%s/exe", pid);
@@ -376,6 +372,9 @@ void pinfo(Command *c) {
 
 	if (!stat) {
 		throwError("PID doesn't exist");
+		free(exefile);
+		free(statfile);
+		free(pid);
 		return;
 	}
 
@@ -391,7 +390,7 @@ void pinfo(Command *c) {
 		   "%d (%*[^)]) %c %*s %d %*s %*s %d %*s %*s %*s %*s %*s %*s %*s %*s "
 		   "%*s %*s %*s %*s %*s %*s %lu",
 		   &ipid, &status, &pgid, &tpgrp, &mem);
-
+	fclose(stat);
 	printf(CGETCOLOR(WHITE));
 	printf("PID      \t: " CGETCOLOR(CYAN) "%d\n" CGETCOLOR(WHITE), ipid);
 	printf("Status   \t: " CGETCOLOR(PURPLE) "%c%c\n" CGETCOLOR(WHITE), status,

@@ -1,5 +1,5 @@
-#include "lib/error_handler.h"
-#include "nsh/parser.h"
+#include <lib/error_handler.h>
+#include <nsh/parser.h>
 #include <nsh/jobsll.h>
 #include <nsh/parser.h>
 #include <stdio.h>
@@ -155,4 +155,17 @@ void deleteJob(JobDLL *jdll, Job *job) {
 	if (job->jidStr)
 		free(job->jidStr);
 	free(job);
+}
+
+void deleteJobsDLL(JobDLL *jdll) {
+	Job *job = jdll->head;
+	if (job) {
+		Job *next = job->next;
+		while (next) {
+			deleteJob(jdll, job);
+			job = next;
+			next = job->next;
+		}
+	}
+	free(jdll);
 }

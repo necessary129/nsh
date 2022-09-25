@@ -54,4 +54,5 @@ void deleteProc(Job *job, JobProcess *proc);
 void deleteJob(JobDLL *jdll, Job *job);
 JobProcess *findProcFromDeadPid(JobDLL *jdll, pid_t pid);
 Job *findJobFromJobid(JobDLL *jdll, unsigned long jid);
+void deleteJobsDLL(JobDLL *jdll);
 #endif

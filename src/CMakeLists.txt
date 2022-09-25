@@ -11,6 +11,7 @@ add_executable(nsh
 	jobs.c
 	rawgetline.c
 	jobsll.c
+	autocomplete.c
 )
 
 target_link_libraries(nsh PRIVATE lib)

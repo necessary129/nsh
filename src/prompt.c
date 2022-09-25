@@ -123,7 +123,7 @@ int interpret() {
 	time_t before = time(NULL);
 	if (valid) {
 		parseLine(line);
-		memset(line, 0, nread);
+		memset(line, 0, maxLen);
 	}
 	time_t diff = time(NULL) - before;
 	appendHistory(line);
