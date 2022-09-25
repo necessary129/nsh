@@ -1,6 +1,7 @@
 #include <dirent.h>
 #include <lib/error_handler.h>
 #include <nsh/autocomplete.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -25,8 +26,6 @@ int filter(const struct dirent *dirent) {
 }
 
 void cleanupFilter() {
-	if (filterstr)
-		free(filterstr);
 	while (n--) {
 		free(namelist[n]);
 	}
@@ -43,7 +42,7 @@ char *getPrediction(char *directory, char *name) {
 	static int idx = 0;
 	if (!dir || !filterstr || strcmp(dir, directory) != 0 ||
 		strcmp(name, filterstr) != 0) {
-		while (n--) {
+		while (n-- > 0) {
 			free(namelist[n]);
 		}
 		if (namelist) {

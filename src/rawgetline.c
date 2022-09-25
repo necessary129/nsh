@@ -103,6 +103,8 @@ size_t myGetline(char **line, size_t *maxLen) {
 				if (!lastSlash) {
 					lastSlash = lastSpace;
 					lastSpace = strdup(".");
+				} else if (strcmp(lastSpace, "/") == 0) {
+					lastSlash = strdup("/");
 				} else {
 					*lastSlash = '\0';
 					lastSlash = strdup(lastSlash + 1);
