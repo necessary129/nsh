@@ -1,6 +1,7 @@
 #include <dirent.h>
 #include <lib/error_handler.h>
 #include <nsh/autocomplete.h>
+#include <nsh/utils.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -57,7 +58,7 @@ char *getPrediction(char *directory, char *name) {
 			free(filterstr);
 			filterstr = NULL;
 		}
-		dir = checkAlloc(strdup(directory));
+		dir = checkAlloc(resolveTilde(directory));
 		if (strlen(name) == 0)
 			filterstr = NULL;
 		else
