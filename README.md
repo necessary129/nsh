@@ -32,36 +32,6 @@ ninja -C
 
 You should have the shell in `nsh` in the `build/bin/` directory.
 
-## Commands
-
-### `cd`
-Changes the directory.
-
-### `pwd`
-Prints the current directory
-
-### `echo`
-Prints the arguments
-
-### `discover`
-Rudimentary `find` equivalent. With glob searching.
-
-### `history`
-Prints the last 10 commands entered in shell.
-
-### `pinfo`
-Gets process info.
-
-### `quit`
-Quits the shell.
-
-... other commands exec'd.
-
-## Features
-
-- Prints the execution time for all foreground commands.
-- Background process support.
-
 ## Quirks
 
 1. Home directory is defined as the directory where the shell is initialized: Assignment specification.

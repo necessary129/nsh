@@ -1,7 +1,7 @@
 #include <lib/error_handler.h>
+#include <nsh/jobs.h>
 #include <nsh/jobsll.h>
 #include <nsh/main.h>
-#include <nsh/jobs.h>
 #include <signal.h>
 #include <stdlib.h>
 #include <sys/types.h>

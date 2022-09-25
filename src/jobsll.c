@@ -1,5 +1,4 @@
 #include <lib/error_handler.h>
-#include <nsh/parser.h>
 #include <nsh/jobsll.h>
 #include <nsh/parser.h>
 #include <stdio.h>

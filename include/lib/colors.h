@@ -3,7 +3,6 @@
 
 #define CUDEF
 
-
 #define CMNORMAL "00"
 #define CMBOLD "01"
 #define CMDEFAULT CMBOLD
@@ -44,19 +43,16 @@
 #define CBBRIGHT_CYAN "106"
 #define CBBRIGHT_WHITE "107"
 
-
-
 #define CRESET "\e[0;0;0m"
 
-
-
-
-#define CGETCOLOR3(type, fore, back) "\e[" CM##type ";" CC##fore ";" CB##back "m"
+#define CGETCOLOR3(type, fore, back)                                           \
+	"\e[" CM##type ";" CC##fore ";" CB##back "m"
 #define CGETCOLOR2(fore, back) "\e[" CMDEFAULT ";" CC##fore ";" CB##back "m"
 #define CGETCOLOR1(fore) "\e[" CMDEFAULT ";" CC##fore "m"
 
-#define GET_MACRO(_1,_2,_3, NAME,...) NAME
-#define CGETCOLOR(...) GET_MACRO(__VA_ARGS__, CGETCOLOR3, CGETCOLOR2, CGETCOLOR1)(__VA_ARGS__)
+#define GET_MACRO(_1, _2, _3, NAME, ...) NAME
+#define CGETCOLOR(...)                                                         \
+	GET_MACRO(__VA_ARGS__, CGETCOLOR3, CGETCOLOR2, CGETCOLOR1)(__VA_ARGS__)
 
 #define CTGETCOLOR(type, fore) "\e[" CM##type ";" CC##fore "m"
 

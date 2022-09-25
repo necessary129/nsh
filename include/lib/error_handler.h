@@ -5,10 +5,10 @@ extern int lfail;
 
 void throwErrorPerror(const char *s);
 
-void throwError(const char * s);
+void throwError(const char *s);
 
 void throwPerrorAndFail(const char *s);
 
-void * checkAlloc(void * ptr);
+void *checkAlloc(void *ptr);
 
 #endif

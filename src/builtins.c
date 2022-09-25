@@ -1,4 +1,3 @@
-#include <nsh/jobs.h>
 #include <alloca.h>
 #include <dirent.h>
 #include <fcntl.h>
@@ -9,6 +8,7 @@
 #include <libgen.h>
 #include <nsh/builtins.h>
 #include <nsh/execute.h>
+#include <nsh/jobs.h>
 #include <nsh/jobsll.h>
 #include <nsh/main.h>
 #include <nsh/parser.h>

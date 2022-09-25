@@ -1,9 +1,9 @@
+#include <fcntl.h>
+#include <lib/error_handler.h>
 #include <nsh/execute.h>
 #include <nsh/history.h>
 #include <nsh/jobsll.h>
 #include <nsh/main.h>
-#include <fcntl.h>
-#include <lib/error_handler.h>
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>

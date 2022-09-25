@@ -1,9 +1,9 @@
 
-#include <nsh/builtins.h>
-#include <nsh/main.h>
 #include <ctype.h>
 #include <lib/error_handler.h>
 #include <nsh/autocomplete.h>
+#include <nsh/builtins.h>
+#include <nsh/main.h>
 #include <nsh/rawgetline.h>
 #include <stddef.h>
 #include <stdio.h>

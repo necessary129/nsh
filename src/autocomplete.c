@@ -1,5 +1,5 @@
-#include <lib/error_handler.h>
 #include <dirent.h>
+#include <lib/error_handler.h>
 #include <nsh/autocomplete.h>
 #include <stdlib.h>
 #include <string.h>

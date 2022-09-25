@@ -1,9 +1,9 @@
 #ifndef NSH_SHELL_H
 #define NSH_SHELL_H
 
-#include "nsh/jobsll.h"
 #include <lib/sdll.h>
 #include <nsh/history.h>
+#include <nsh/jobsll.h>
 #include <time.h>
 struct ShellState {
 	char *homedir;

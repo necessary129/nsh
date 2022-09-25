@@ -1,10 +1,10 @@
-#include <nsh/autocomplete.h>
-#include <nsh/rawgetline.h>
 #include <errno.h>
 #include <grp.h>
+#include <nsh/autocomplete.h>
 #include <nsh/history.h>
 #include <nsh/jobs.h>
 #include <nsh/main.h>
+#include <nsh/rawgetline.h>
 #include <pwd.h>
 #include <stddef.h>
 #include <stdio.h>

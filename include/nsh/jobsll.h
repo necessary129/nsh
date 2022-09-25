@@ -1,7 +1,7 @@
 #ifndef NSH_JOBSLL_H
 #define NSH_JOBSLL_H
 
-#include "nsh/parser.h"
+#include <nsh/parser.h>
 #include <stddef.h>
 #include <sys/types.h>
 struct Job {
