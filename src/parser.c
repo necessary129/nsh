@@ -1,4 +1,5 @@
 #include "nsh/execute.h"
+#include "nsh/history.h"
 #include "nsh/jobsll.h"
 #include "nsh/main.h"
 #include <fcntl.h>
@@ -18,6 +19,7 @@
 void parseLine(const char *line) {
 	char *saveptr;
 	char *linecopy = strdup(line);
+	appendHistory(linecopy);
 	char *command;
 	command = strtok_r(linecopy, ";&\n", &saveptr);
 	while (command) {
@@ -39,6 +41,7 @@ Command *parseCmd(const char *cmd) {
 	Command *c = checkAlloc(calloc(1, sizeof *c));
 	c->name = strdup(arg);
 	c->args = screateDLL();
+	c->fullcmd = strdup(cmd);
 	sdAppendElement(c->args, arg);
 	int size = 20;
 	char *delims = checkAlloc(calloc(size, sizeof *delims));
@@ -106,5 +109,7 @@ void destroyCommand(Command *c) {
 		free(c->infile);
 	if (c->outfile)
 		free(c->outfile);
+	if (c->fullcmd)
+		free(c->fullcmd);
 	sdestroyDLL(c->args);
 }

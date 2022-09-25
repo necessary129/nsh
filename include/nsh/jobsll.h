@@ -7,8 +7,6 @@
 struct Job {
 	pid_t pgid;
 	char *name;
-	char *infile;
-	char *outfile;
 	int status;
 	struct JobProcess *head;
 	struct JobProcess *tail;
@@ -16,6 +14,8 @@ struct Job {
 	struct Job *prev;
 	size_t jobid;
 	size_t nproc;
+
+	char *jidStr;
 	int isbg;
 	int fgset;
 	int append;
@@ -28,8 +28,7 @@ struct JobProcess {
 	int status;
 	struct JobProcess *next;
 	struct JobProcess *prev;
-	char *infile;
-	char *outfile;
+	char *pidStr;
 };
 
 struct JobDLL {
@@ -44,7 +43,6 @@ typedef struct JobDLL JobDLL;
 typedef struct Job Job;
 typedef struct JobProcess JobProcess;
 
-void initJobs();
 JobProcess *addProcessToJob(Job *job, Command *c);
 Job *createJob(JobDLL *jobdll, char *name, int isbg);
 JobDLL *createJobDLL();
@@ -54,4 +52,5 @@ JobProcess *findProcFromJob(Job *j, pid_t pid);
 JobProcess *findProcFromPid(JobDLL *jdll, pid_t pid);
 void deleteProc(Job *job, JobProcess *proc);
 void deleteJob(JobDLL *jdll, Job *job);
+JobProcess *findProcFromDeadPid(JobDLL *jdll, pid_t pid);
 #endif

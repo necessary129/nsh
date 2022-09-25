@@ -1,8 +1,8 @@
 #include "lib/error_handler.h"
-#include "nsh/main.h"
 #include "nsh/parser.h"
 #include <nsh/jobsll.h>
 #include <nsh/parser.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
@@ -20,7 +20,7 @@ Job *createJob(JobDLL *jobdll, char *name, int isbg) {
 	if (jobdll->size == 0)
 		jobdll->mjobid = 0;
 
-	Job *newJob = checkAlloc(malloc(sizeof *newJob));
+	Job *newJob = checkAlloc(calloc(1, sizeof *newJob));
 	newJob->head = newJob->tail = NULL;
 	newJob->name = strdup(name);
 	newJob->status = 0;
@@ -29,7 +29,7 @@ Job *createJob(JobDLL *jobdll, char *name, int isbg) {
 	newJob->isbg = isbg;
 	newJob->fgset = 0;
 	newJob->append = 0;
-	newJob->infile = newJob->outfile = NULL;
+	newJob->jidStr = NULL;
 
 	newJob->next = NULL;
 	newJob->prev = jobdll->tail;
@@ -44,23 +44,21 @@ Job *createJob(JobDLL *jobdll, char *name, int isbg) {
 
 	jobdll->size++;
 	newJob->jobid = ++jobdll->mjobid;
-
+	char jobid[256];
+	sprintf(jobid, "%lu", newJob->jobid);
+	newJob->jidStr = strdup(jobid);
 	return newJob;
 }
 
 JobProcess *addProcessToJob(Job *job, Command *c) {
 	JobProcess *newProc = checkAlloc(calloc(1, sizeof *newProc));
 
-	// if (infile)
-	// 	newProc->infile = strdup(infile);
-	// if (outfile)cmake_install.cmake
-	// 	newProc->outfile = strdup(outfile);
 	newProc->command = c;
 	newProc->pid = -1;
 	newProc->status = -1;
 	newProc->next = NULL;
 	newProc->job = job;
-	newProc->infile = newProc->outfile = NULL;
+	newProc->pidStr = NULL;
 
 	newProc->prev = job->tail;
 
@@ -99,15 +97,23 @@ JobProcess *findProcFromPid(JobDLL *jdll, pid_t pid) {
 	return findProcFromJob(job, pid);
 }
 
+JobProcess *findProcFromDeadPid(JobDLL *jdll, pid_t pid) {
+	for (Job *job = jdll->head; job != NULL; job = job->next) {
+		for (JobProcess *proc = job->head; proc != NULL; proc = proc->next) {
+			if (proc->pid == pid)
+				return proc;
+		}
+	}
+	return NULL;
+}
+
 void deleteProc(Job *job, JobProcess *proc) {
 	if (proc->prev)
 		proc->prev->next = proc->next;
 	if (proc->next)
 		proc->next->prev = proc->prev;
-	if (proc->infile)
-		free(proc->infile);
-	if (proc->outfile)
-		free(proc->outfile);
+	if (proc->pidStr)
+		free(proc->pidStr);
 	if (job->head == proc)
 		job->head = proc->next;
 	if (job->tail == proc)
@@ -138,14 +144,7 @@ void deleteJob(JobDLL *jdll, Job *job) {
 	}
 	if (job->name)
 		free(job->name);
-	if (job->infile)
-		free(job->infile);
-	if (job->outfile)
-		free(job->outfile);
+	if (job->jidStr)
+		free(job->jidStr);
 	free(job);
-}
-
-void initJobs() {
-	JobDLL *newJobs = createJobDLL();
-	shellState.jobs = newJobs;
 }

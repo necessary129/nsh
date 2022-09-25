@@ -1,70 +1,74 @@
-// #include <alloca.h>
-// #include <fcntl.h>
-// #include <lib/error_handler.h>
-// #include <lib/jdll.h>
-// #include <nsh/jobs.h>
-// #include <nsh/main.h>
-// #include <nsh/utils.h>
-// #include <signal.h>
-// #include <stddef.h>
-// #include <stdio.h>
-// #include <stdlib.h>
-// #include <string.h>
-// #include <sys/wait.h>
+#include "lib/error_handler.h"
+#include "nsh/jobsll.h"
+#include "nsh/main.h"
+#include <signal.h>
+#include <stdlib.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <unistd.h>
 
-// jDElement **toReap;
-// int nReap = 0;
-// size_t maxReap = 1024;
+void makeForeground(pid_t pgrp, int sig) {
+	if (tcsetpgrp(shellState.shellstdin, pgrp) == -1) {
+		throwErrorPerror("Couldn't set TPGID");
+		killpg(pgrp, SIGTERM);
+		return;
+	}
+}
 
-// // void initJobs() {
-// // 	jDLL *jobs = jcreateDLL();
-// // 	toReap = checkAlloc(malloc(sizeof *toReap * maxReap));
-// // 	nReap = 0;
-// // 	shellState.jobs = jobs;
-// // }
+void waitForJob(Job *j) {
+	int status;
+	pid_t pid;
+	shellState.waitpgrp = j->pgid;
+	while ((pid = waitpid(-(j->pgid), &status, WUNTRACED | WCONTINUED)) > 0) {
+		int stop = 1;
+		JobProcess *proc = findProcFromJob(j, pid);
+		if (!proc) {
+			throwError("Cannot find process for job");
+			continue;
+		}
+		proc->status = status;
+		if (WIFEXITED(status))
+			deleteProc(j, proc);
+		if (WIFSTOPPED(status)) {
+			for (proc = j->head; proc != NULL; proc = proc->next) {
+				if (!WIFSTOPPED(status)) {
+					stop = 0;
+				}
+			}
+			if (stop)
+				break;
+		}
+		if (j->nproc <= 0) {
+			deleteJob(shellState.jobs, j);
+		}
+	}
+	tcsetpgrp(shellState.shellstdin, shellState.shellpgrp);
+	shellState.waitpgrp = 0;
+}
 
-// void addJob(char *name, pid_t pid) {
-// 	char *pidS = alloca(256);
-// 	Job job = {0};
-// 	job.pid = pid;
-// 	sprintf(pidS, "%d", pid);
-// 	job.name = checkAlloc(strdup(name));
-// 	job.pidStr = checkAlloc(strdup(pidS));
-// 	job.jid = shellState.jobs->mjobid++;
-// 	jdAppendElement(shellState.jobs, job);
-// 	fprintf(stderr, "[%lu] %d\n", job.jid, job.pid);
-// }
+volatile sig_atomic_t nReap = 0;
+size_t maxReap = 100;
+volatile JobProcess *proc;
+volatile JobProcess **toReap;
 
-// jDElement *getJob(pid_t pid) {
-// 	for (jDElement *el = jdGetElement(shellState.jobs, 0); el != NULL;
-// 		 el = jdNext(el)) {
-// 		if (el->data.pid == pid)
-// 			return el;
-// 	}
-// 	return NULL;
-// }
+void initJobs() {
+	toReap = checkAlloc(calloc(100, sizeof *toReap));
+	JobDLL *newJobs = createJobDLL();
+	shellState.jobs = newJobs;
+}
 
-// void markForReap(jDElement *el) { toReap[nReap++] = el; }
+void markForReap(JobProcess *proc) { toReap[nReap++] = proc; }
 
-// void reapJobs() {
-// 	if (nReap >= maxReap / 2) {
-// 		maxReap *= 2;
-// 		toReap = checkAlloc(realloc(toReap, sizeof *toReap * maxReap));
-// 	}
-// 	while (nReap)
-// 		removeJob(toReap[--nReap]);
-// }
-
-// void removeJob(jDElement *el) { jdDeleteElement(shellState.jobs, el); }
-
-// void cleanupJobs() {
-// 	for (jDElement *el = jdGetElement(shellState.jobs, 0); el != NULL;
-// 		 el = jdNext(el)) {
-// 		if (waitpid(el->data.pid, NULL, WNOHANG) <= 0) {
-// 			kill(el->data.pid, SIGHUP);
-// 		}
-// 	}
-// 	free(toReap);
-// 	jdestroyDLL(shellState.jobs);
-// 	// free(shellState.jobs);
-// }
+void reapJobs() {
+	if (nReap > maxReap / 2) {
+		maxReap *= 2;
+		toReap = checkAlloc(realloc(toReap, sizeof *toReap * maxReap));
+	}
+	while (nReap) {
+		proc = toReap[--nReap];
+		Job *job = proc->job;
+		deleteProc(job, (JobProcess *)proc);
+		if (job->nproc <= 0)
+			deleteJob(shellState.jobs, job);
+	}
+}

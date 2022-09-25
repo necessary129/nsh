@@ -1,14 +1,15 @@
-// #ifndef NSH_JOBS_H
-// #define NSH_JOBS_H
+#ifndef NSH_JOBS_H
+#define NSH_JOBS_H
 
-// #include <fcntl.h>
-// #include <lib/jdll.h>
+#include "nsh/jobsll.h"
+#include <sys/types.h>
+void makeForeground(pid_t pgrp);
 
-// void initJobs();
-// void addJob(char *name, pid_t pid);
-// jDElement *getJob(pid_t pid);
-// void removeJob(jDElement *el);
-// void reapJobs();
-// void markForReap(jDElement *el);
-// void cleanupJobs();
-// #endif
+void waitForJob(Job *j);
+
+void initJobs();
+
+void markForReap(JobProcess *proc);
+
+void reapJobs();
+#endif

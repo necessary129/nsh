@@ -12,40 +12,16 @@
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
-
-void makeForeground(pid_t pgrp) {
-	if (tcsetpgrp(shellState.shellstdin, pgrp) == -1) {
-		throwErrorPerror("Couldn't set TPGID (Child)");
-		killpg(pgrp, SIGTERM);
-		return;
-	}
-}
-
-void waitForJob(Job *j) {
-	int status;
-	pid_t pid;
-	shellState.waitpgrp = j->pgid;
-	while ((pid = waitpid(-(j->pgid), &status, WUNTRACED)) > 0) {
-		JobProcess *proc = findProcFromJob(j, pid);
-		if (!proc) {
-			throwError("Cannot find process for job");
-			continue;
-		}
-		proc->status = status;
-		if (WIFEXITED(status))
-			deleteProc(j, proc);
-	}
-	tcsetpgrp(shellState.shellstdin, shellState.shellpgrp);
-	shellState.waitpgrp = 0;
-}
 
 void execProc(JobProcess *proc, int infd, int outfd) {
 	if (!proc->job->isbg) {
 		makeForeground(proc->job->pgid);
 	}
+	resetFgSig();
 
 	if (proc->command->infile)
 		if ((infd = open(proc->command->infile, O_RDONLY)) < 0)
@@ -94,13 +70,16 @@ void executeJob(Job *j) {
 				j->pgid = pid;
 			}
 			proc->pid = pid;
+			char pidStr[256];
+			sprintf(pidStr, "%d", pid);
+			proc->pidStr = strdup(pidStr);
 			if (setpgid(pid, j->pgid) == -1) {
 				throwErrorPerror("Could not set process pgid (Parent)");
 				kill(pid, SIGTERM);
 				killpg(j->pgid, SIGTERM);
 				return;
 			}
-			if (!j->fgset) {
+			if (!j->isbg && !j->fgset) {
 				makeForeground(j->pgid);
 				j->fgset = 1;
 			}

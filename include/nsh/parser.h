@@ -7,6 +7,7 @@ void parseJob(const char *job, int isbg);
 
 struct Command {
 	char *name;
+	char *fullcmd;
 	sDLL *args;
 	int bg;
 	int flag['z' - '0' + 1]; // Assuming flags are single characters
