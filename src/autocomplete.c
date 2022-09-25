@@ -27,14 +27,13 @@ int filter(const struct dirent *dirent) {
 }
 
 void cleanupFilter() {
-	while (n--) {
+	while (n-- > 0) {
 		free(namelist[n]);
 	}
 	if (namelist)
 		free(namelist);
 	if (dir != NULL)
 		free(dir);
-	dir = NULL;
 	if (filterstr != NULL)
 		free(filterstr);
 }
