@@ -101,6 +101,7 @@ void resetLine() {
 }
 
 int interpret() {
+	reapJobs();
 	enableRawMode();
 	if (!line) {
 		line = checkAlloc(calloc(1, sizeof *line * MAX_LINE_LENGTH));
@@ -134,6 +135,6 @@ int interpret() {
 		shellState.lastExecTime = diff;
 		updatePrompt();
 	}
-	// reapJobs();
+	reapJobs();
 	return valid && !bquit;
 }

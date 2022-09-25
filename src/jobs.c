@@ -1,14 +1,15 @@
 #include "lib/error_handler.h"
 #include "nsh/jobsll.h"
 #include "nsh/main.h"
+#include <nsh/jobs.h>
 #include <signal.h>
 #include <stdlib.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
 
-void makeForeground(pid_t pgrp, int sig) {
-	if (tcsetpgrp(shellState.shellstdin, pgrp) == -1) {
+void makeForeground(pid_t pgrp) {
+	if (tcsetpgrp(STDERR_FILENO, pgrp) == -1) {
 		throwErrorPerror("Couldn't set TPGID");
 		killpg(pgrp, SIGTERM);
 		return;
@@ -27,22 +28,22 @@ void waitForJob(Job *j) {
 			continue;
 		}
 		proc->status = status;
-		if (WIFEXITED(status))
-			deleteProc(j, proc);
 		if (WIFSTOPPED(status)) {
 			for (proc = j->head; proc != NULL; proc = proc->next) {
-				if (!WIFSTOPPED(status)) {
+				if (!(WIFSTOPPED(status) || WIFEXITED(status))) {
 					stop = 0;
 				}
 			}
 			if (stop)
 				break;
-		}
+		} else if (WIFEXITED(status) || WIFSIGNALED(status))
+			markForReap(proc);
+
 		if (j->nproc <= 0) {
 			deleteJob(shellState.jobs, j);
 		}
 	}
-	tcsetpgrp(shellState.shellstdin, shellState.shellpgrp);
+	tcsetpgrp(STDERR_FILENO, shellState.shellpgrp);
 	shellState.waitpgrp = 0;
 }
 
@@ -60,6 +61,10 @@ void initJobs() {
 void markForReap(JobProcess *proc) { toReap[nReap++] = proc; }
 
 void reapJobs() {
+	sigset_t block;
+	sigemptyset(&block);
+	sigaddset(&block, SIGCHLD);
+	sigprocmask(SIG_BLOCK, &block, NULL);
 	if (nReap > maxReap / 2) {
 		maxReap *= 2;
 		toReap = checkAlloc(realloc(toReap, sizeof *toReap * maxReap));
@@ -71,4 +76,5 @@ void reapJobs() {
 		if (job->nproc <= 0)
 			deleteJob(shellState.jobs, job);
 	}
+	sigprocmask(SIG_UNBLOCK, &block, NULL);
 }

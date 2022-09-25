@@ -1,3 +1,4 @@
+#include "nsh/jobs.h"
 #include <alloca.h>
 #include <dirent.h>
 #include <fcntl.h>
@@ -8,10 +9,12 @@
 #include <libgen.h>
 #include <nsh/builtins.h>
 #include <nsh/execute.h>
+#include <nsh/jobsll.h>
 #include <nsh/main.h>
 #include <nsh/parser.h>
 #include <nsh/prompt.h>
 #include <nsh/utils.h>
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -30,6 +33,10 @@ struct builtin builtinCommands[] = {
 	{"quit", 		0,			0,			0,			quit},
 	{"discover", 	0,			2,			1,			discover},
 	{"history",		0,			0,			0,			history},
+	{"jobs",		0,			0,			1,			jobs},
+	{"sig", 		2,			2,			0,			sig},
+	{"bg",			1,			1,			0,			bg},
+	{"fg",			1,			1,			0,			fg},
 	{0}
 };
 // clang-format on
@@ -485,6 +492,76 @@ void discover(Command *c) {
 
 	free(newpath);
 	free(filetofind);
+}
+
+void jobs(Command *c) {
+	if (!c->flag['s' - '0'] && !c->flag['r' - '0']) {
+		c->flag['s' - '0'] = 1;
+		c->flag['r' - '0'] = 1;
+	}
+	int stopped = c->flag['s' - '0'];
+	int running = c->flag['r' - '0'];
+
+	for (Job *job = shellState.jobs->head; job != NULL; job = job->next) {
+		printf("[%lu]", job->jobid);
+		for (JobProcess *proc = job->head; proc != NULL; proc = proc->next) {
+			if (stopped && WIFEXITED(proc->status))
+				printf("\tdone %s (%d)\n", proc->command->name, proc->pid);
+			if (stopped && WIFSIGNALED(proc->status))
+				printf("\tkilled %s (%d)\n", proc->command->name, proc->pid);
+			if (stopped && WIFSTOPPED(proc->status))
+				printf("\tstopped %s (%d)\n", proc->command->name, proc->pid);
+			if (running && (WIFCONTINUED(proc->status) || proc->status == -1))
+				printf("\trunning %s (%d)\n", proc->command->name, proc->pid);
+		}
+	}
+}
+
+void bg(Command *c) {
+	int who = atoi(sdGetData(sdGetElement(c->args, 1)));
+	Job *j = findJobFromJobid(shellState.jobs, who);
+	if (!j) {
+		throwError("No such job");
+		return;
+	}
+	if (killpg(j->pgid, SIGCONT) == -1) {
+		throwErrorPerror("Could not send signal");
+		return;
+	}
+	j->isbg = 1;
+}
+
+void fg(Command *c) {
+	int who = atoi(sdGetData(sdGetElement(c->args, 1)));
+	Job *j = findJobFromJobid(shellState.jobs, who);
+	if (!j) {
+		throwError("No such job");
+		return;
+	}
+	makeForeground(j->pgid);
+
+	if (killpg(j->pgid, SIGCONT) == -1) {
+		throwErrorPerror("Could not send signal");
+		tcsetpgrp(STDERR_FILENO, shellState.shellpgrp);
+		return;
+	}
+	j->isbg = 0;
+	waitForJob(j);
+}
+
+void sig(Command *c) {
+	int who = atoi(sdGetData(sdGetElement(c->args, 1)));
+	int what = atoi(sdGetData(sdGetElement(c->args, 2)));
+
+	Job *j = findJobFromJobid(shellState.jobs, who);
+
+	if (!j) {
+		throwError("No such job");
+		return;
+	}
+	if (killpg(j->pgid, what) == -1) {
+		throwErrorPerror("Could not send signal");
+	}
 }
 
 void history(Command *c) {

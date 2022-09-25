@@ -12,6 +12,10 @@ void pinfo(Command *c);
 void quit(Command *c);
 void discover(Command *c);
 void history(Command *c);
+void jobs(Command *c);
+void sig(Command *c);
+void fg(Command *c);
+void bg(Command *c);
 
 extern int bquit;
 

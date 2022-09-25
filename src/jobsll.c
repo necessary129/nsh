@@ -83,6 +83,14 @@ Job *findJobFromPGID(JobDLL *jdll, pid_t pgid) {
 	return NULL;
 }
 
+Job *findJobFromJobid(JobDLL *jdll, unsigned long jid) {
+	for (Job *job = jdll->head; job != NULL; job = job->next) {
+		if (job->jobid == jid)
+			return job;
+	}
+	return NULL;
+}
+
 JobProcess *findProcFromJob(Job *j, pid_t pid) {
 	for (JobProcess *proc = j->head; proc != NULL; proc = proc->next) {
 		if (proc->pid == pid)

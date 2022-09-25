@@ -111,6 +111,8 @@ void handleSIGCHLD(int sig, siginfo_t *info, void *ucontext) {
 			asyncSigSafeWrite(STDERR_FILENO, " with PID ");
 			asyncSigSafeWrite(STDERR_FILENO, proc->pidStr);
 			asyncSigSafeWrite(STDERR_FILENO, " exited abnormally.\n");
+			if (WIFSIGNALED(status))
+				markForReap(proc);
 		}
 
 		if (prompting)
