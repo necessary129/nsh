@@ -1,3 +1,7 @@
+#include "nsh/execute.h"
+#include "nsh/jobsll.h"
+#include "nsh/main.h"
+#include <fcntl.h>
 #include <lib/error_handler.h>
 #include <stddef.h>
 #include <stdlib.h>
@@ -9,6 +13,7 @@
 #include <nsh/parser.h>
 #include <nsh/prompt.h>
 #include <nsh/utils.h>
+#include <unistd.h>
 
 void parseLine(const char *line) {
 	char *saveptr;
@@ -17,35 +22,89 @@ void parseLine(const char *line) {
 	command = strtok_r(linecopy, ";&\n", &saveptr);
 	while (command) {
 		int isbg = line[command - linecopy + strlen(command)] == '&';
-		parseCommand(command, isbg);
+		parseJob(command, isbg);
 		command = strtok_r(NULL, ";&\n", &saveptr);
 	}
 	free(linecopy);
 }
 
-void parseCommand(const char *cmd, int isbg) {
-	char *saveptr;
+Command *parseCmd(const char *cmd) {
 	char *cmdcopy = strdup(cmd);
-	char *arg;
-	Command c = {0};
-	arg = strtok_r(cmdcopy, " \t", &saveptr);
+	char *saveptr;
+	char *arg = strtok_r(cmdcopy, ">< \t", &saveptr);
 	if (arg == NULL) {
 		free(cmdcopy);
-		return;
+		return NULL;
 	}
-	c.name = strdup(arg);
-	c.bg = isbg;
-	size_t nmargs = 10;
-	c.args = screateDLL();
-	sdAppendElement(c.args, arg);
-	while ((arg = strtok_r(NULL, " \t", &saveptr)))
-		sdAppendElement(c.args, arg);
-	runCommand(&c);
-	destroyCommand(&c);
+	Command *c = checkAlloc(calloc(1, sizeof *c));
+	c->name = strdup(arg);
+	c->args = screateDLL();
+	sdAppendElement(c->args, arg);
+	int size = 20;
+	char *delims = checkAlloc(calloc(size, sizeof *delims));
+	while (arg) {
+		int from = arg - cmdcopy + strlen(arg);
+		arg = strtok_r(NULL, ">< \t", &saveptr);
+		if (!arg)
+			break;
+		int to = arg - cmdcopy;
+		int delta = to - from;
+		if (delta > size) {
+			size = delta + 1;
+			delims = checkAlloc(realloc(delims, sizeof *delims * size));
+		}
+		strncpy(delims, &cmd[from], delta);
+		if (strstr(delims, ">>") != NULL) {
+			if (c->outfile)
+				free(c->outfile);
+			c->outfile = strdup(arg);
+			c->append = 1;
+			continue;
+		}
+		if (strstr(delims, ">") != NULL) {
+			if (c->outfile)
+				free(c->outfile);
+			c->outfile = strdup(arg);
+			continue;
+		}
+		if (strstr(delims, "<") != NULL) {
+			if (c->infile)
+				free(c->infile);
+			c->infile = strdup(arg);
+			continue;
+		}
+		sdAppendElement(c->args, arg);
+	}
 	free(cmdcopy);
+	return c;
+}
+
+void parseJob(const char *job, int isbg) {
+	char *jcopy = strdup(job);
+	char *saveptr;
+	char *procjob = strtok_r(jcopy, "|\n", &saveptr);
+	Command *c = parseCmd(procjob);
+	if (isBuiltin(c)) {
+		runCommand(c);
+		destroyCommand(c);
+		free(c);
+	} else {
+		Job *newJob = createJob(shellState.jobs, jcopy, isbg);
+		addProcessToJob(newJob, c);
+		while ((procjob = strtok_r(NULL, "|\n", &saveptr))) {
+			Command *c = parseCmd(procjob);
+			addProcessToJob(newJob, c);
+		}
+		executeJob(newJob);
+	}
+	free(jcopy);
 }
 
 void destroyCommand(Command *c) {
 	free(c->name);
+	if (c->infile)
+		free(c->infile);
+	if (c->outfile)
+		free(c->outfile);
 	sdestroyDLL(c->args);
 }

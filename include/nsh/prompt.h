@@ -12,4 +12,5 @@ void resetLine();
 void setPrompt();
 void updatePrompt();
 int interpret();
+void disableRawMode();
 #endif

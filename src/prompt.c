@@ -103,7 +103,7 @@ void resetLine() {
 int interpret() {
 	enableRawMode();
 	if (!line) {
-		line = checkAlloc(malloc(MAX_LINE_LENGTH));
+		line = checkAlloc(calloc(1, sizeof *line * MAX_LINE_LENGTH));
 	}
 	size_t maxLen = MAX_LINE_LENGTH;
 	printPrompt();
@@ -116,8 +116,7 @@ int interpret() {
 		nread = myGetline(&line, &maxLen);
 	else
 		nread = getline(&line, &maxLen, stdin);
-	if (rawMode)
-		disableRawMode();
+	disableRawMode();
 	prompting = 0;
 	int valid = nread > 0;
 	time_t before = time(NULL);
@@ -135,6 +134,6 @@ int interpret() {
 		shellState.lastExecTime = diff;
 		updatePrompt();
 	}
-	reapJobs();
+	// reapJobs();
 	return valid && !bquit;
 }

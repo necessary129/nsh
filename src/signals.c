@@ -42,9 +42,14 @@ void pasyncPrompt() {
 }
 
 // SIG_IGN was being transferred to children also
-void handleSIGTSTP(int sig, siginfo_t *info, void *uncontext){};
+void handleSIGTSTP(int sig, siginfo_t *info, void *uncontext) {
+	if (shellState.waitpgrp)
+		killpg(shellState.waitpgrp, SIGSTOP);
+};
 
 void handleSIGINT(int sig, siginfo_t *info, void *uncontext) {
+	if (shellState.waitpgrp)
+		killpg(shellState.waitpgrp, SIGTERM);
 	asyncSigSafeWrite(STDOUT_FILENO, "\n");
 	asyncSigSafeWrite(STDOUT_FILENO, shellState.prompt);
 	asyncSigSafeWrite(STDOUT_FILENO, "\n");
@@ -53,57 +58,58 @@ void handleSIGINT(int sig, siginfo_t *info, void *uncontext) {
 
 void handleSIGCHLD(int sig, siginfo_t *info, void *ucontext) {
 
-	sig_atomic_t childPid; // pid_t childPid = info->si_pid; < -- cannot rely on
-						   // this because this can
-						   // be overridden by another SIGCHLD
+	// sig_atomic_t childPid; // pid_t childPid = info->si_pid; < -- cannot rely
+	// on
+	// 					   // this because this can
+	// 					   // be overridden by another SIGCHLD
 
-	sig_atomic_t status;
+	// sig_atomic_t status;
 
-	while ((childPid = waitpid(-1, &status, WNOHANG | WUNTRACED)) > 0) {
-		jDElement *jobel = getJob(childPid);
-		if (!jobel)
-			return;
+	// while ((childPid = waitpid(-1, &status, WNOHANG | WUNTRACED)) > 0) {
+	// 	jDElement *jobel = getJob(childPid);
+	// 	if (!jobel)
+	// 		return;
 
-		if (WIFEXITED(status)) {
-			asyncSigSafeWrite(STDERR_FILENO, "\n");
-			asyncSigSafeWrite(STDERR_FILENO, jobel->data.name);
-			asyncSigSafeWrite(STDERR_FILENO, " with PID ");
-			asyncSigSafeWrite(STDERR_FILENO, jobel->data.pidStr);
-			asyncSigSafeWrite(STDERR_FILENO, " exited normally with ");
-			if (WEXITSTATUS(status) == 0)
-				asyncSigSafeWrite(STDERR_FILENO, "success status code.\n");
-			else
-				asyncSigSafeWrite(STDERR_FILENO, "an error status code.\n");
-			if (prompting)
-				pasyncPrompt();
-			// Cannot just reap because free is not async safe.
-			markForReap(jobel);
-		} else if (WIFSTOPPED(status)) {
-			asyncSigSafeWrite(STDERR_FILENO, "\n");
-			asyncSigSafeWrite(STDERR_FILENO, jobel->data.name);
-			asyncSigSafeWrite(STDERR_FILENO, " with PID ");
-			asyncSigSafeWrite(STDERR_FILENO, jobel->data.pidStr);
-			asyncSigSafeWrite(STDERR_FILENO, " stopped normally.\n");
-			if (prompting)
-				pasyncPrompt();
-			jobel->data.status = status;
-		} else {
-			asyncSigSafeWrite(STDERR_FILENO, "\n");
-			asyncSigSafeWrite(STDERR_FILENO, jobel->data.name);
-			asyncSigSafeWrite(STDERR_FILENO, " with PID ");
-			asyncSigSafeWrite(STDERR_FILENO, jobel->data.pidStr);
-			asyncSigSafeWrite(STDERR_FILENO, " exited abnormally.\n");
+	// 	if (WIFEXITED(status)) {
+	// 		asyncSigSafeWrite(STDERR_FILENO, "\n");
+	// 		asyncSigSafeWrite(STDERR_FILENO, jobel->data.name);
+	// 		asyncSigSafeWrite(STDERR_FILENO, " with PID ");
+	// 		asyncSigSafeWrite(STDERR_FILENO, jobel->data.pidStr);
+	// 		asyncSigSafeWrite(STDERR_FILENO, " exited normally with ");
+	// 		if (WEXITSTATUS(status) == 0)
+	// 			asyncSigSafeWrite(STDERR_FILENO, "success status code.\n");
+	// 		else
+	// 			asyncSigSafeWrite(STDERR_FILENO, "an error status code.\n");
+	// 		if (prompting)
+	// 			pasyncPrompt();
+	// 		// Cannot just reap because free is not async safe.
+	// 		markForReap(jobel);
+	// 	} else if (WIFSTOPPED(status)) {
+	// 		asyncSigSafeWrite(STDERR_FILENO, "\n");
+	// 		asyncSigSafeWrite(STDERR_FILENO, jobel->data.name);
+	// 		asyncSigSafeWrite(STDERR_FILENO, " with PID ");
+	// 		asyncSigSafeWrite(STDERR_FILENO, jobel->data.pidStr);
+	// 		asyncSigSafeWrite(STDERR_FILENO, " stopped normally.\n");
+	// 		if (prompting)
+	// 			pasyncPrompt();
+	// 		jobel->data.status = status;
+	// 	} else {
+	// 		asyncSigSafeWrite(STDERR_FILENO, "\n");
+	// 		asyncSigSafeWrite(STDERR_FILENO, jobel->data.name);
+	// 		asyncSigSafeWrite(STDERR_FILENO, " with PID ");
+	// 		asyncSigSafeWrite(STDERR_FILENO, jobel->data.pidStr);
+	// 		asyncSigSafeWrite(STDERR_FILENO, " exited abnormally.\n");
 
-			if (prompting)
-				pasyncPrompt();
-			markForReap(jobel);
-		}
-		// fsync(STDOUT_FILENO);
-	}
+	// 		if (prompting)
+	// 			pasyncPrompt();
+	// 		markForReap(jobel);
+	// 	}
+	// 	// fsync(STDOUT_FILENO);
+	// }
 }
 
 void initSignal() {
-	// setHandler(SIGTSTP, handleSIGTSTP);
-	// setHandler(SIGINT, handleSIGINT);
+	setHandler(SIGTSTP, handleSIGTSTP);
+	setHandler(SIGINT, handleSIGINT);
 	setHandler(SIGCHLD, handleSIGCHLD);
 }

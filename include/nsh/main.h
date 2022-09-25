@@ -1,7 +1,7 @@
 #ifndef NSH_SHELL_H
 #define NSH_SHELL_H
 
-#include <lib/jdll.h>
+#include "nsh/jobsll.h"
 #include <lib/sdll.h>
 #include <nsh/history.h>
 #include <time.h>
@@ -17,12 +17,18 @@ struct ShellState {
 	sDLL *history;
 	char *histfile;
 
-	jDLL *jobs;
+	JobDLL *jobs;
 
 	int uid;
 	char *username;
 
 	char *hostname;
+
+	pid_t waitpgrp;
+
+	int shellstdin;
+
+	pid_t shellpgrp;
 };
 
 extern struct ShellState shellState;

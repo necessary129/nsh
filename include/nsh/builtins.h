@@ -28,5 +28,5 @@ struct builtin {
 int parseBuiltin(struct builtin *builtin, Command *c);
 void lsPfile(char *fullpath, int longf);
 void lsProcess(char *s, int allf, int longf);
-
+int isBuiltin(Command *c);
 #endif

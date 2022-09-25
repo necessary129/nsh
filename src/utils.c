@@ -52,6 +52,21 @@ char *resolveTilde(char *s) {
 }
 
 void initShell() {
+	shellState.shellstdin = STDIN_FILENO;
+	if (!isatty(shellState.shellstdin)) {
+		throwError("Not a tty");
+		exit(EXIT_FAILURE);
+	}
+	pid_t pid = getpid();
+
+	if (setpgid(pid, pid) < 0) {
+		throwPerrorAndFail("Cannot put shell in own pgrp");
+	} else {
+		pid = getpgid(pid);
+	}
+	tcsetpgrp(shellState.shellstdin, pid);
+	shellState.shellpgrp = pid;
+	makeFgSig();
 	size_t cbufsize = 4096;
 	char *cbuffer = checkAlloc(malloc(cbufsize));
 	while (!(cbuffer = getcwd(cbuffer, cbufsize))) {
@@ -160,7 +175,8 @@ char *nreadlink(const char *restrict pathname) {
 
 void cleanup() {
 	cleanupHistory();
-	cleanupJobs();
+	disableRawMode();
+	// cleanupJobs();
 	printf("\n");
 	free(shellState.currentdir);
 	free(shellState.homedir);

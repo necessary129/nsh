@@ -10,6 +10,7 @@ add_executable(nsh
 	history.c 
 	jobs.c
 	rawgetline.c
+	jobsll.c
 )
 
 target_link_libraries(nsh PRIVATE lib)

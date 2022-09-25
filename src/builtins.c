@@ -1,5 +1,6 @@
 #include <alloca.h>
 #include <dirent.h>
+#include <fcntl.h>
 #include <fnmatch.h>
 #include <lib/colors.h>
 #include <lib/error_handler.h>
@@ -61,16 +62,47 @@ int parseBuiltin(struct builtin *builtin, Command *c) {
 	return 0;
 }
 
+int isBuiltin(Command *c) {
+	struct builtin *command = builtinCommands;
+	for (int i = 0; command->name[0] != 0; command++, i++)
+		if (strcmp(command->name, c->name) == 0) {
+			return 1;
+		}
+	return 0;
+}
+
 void runCommand(Command *c) {
+	int origstdin = dup(STDIN_FILENO);
+	int origstdout = dup(STDOUT_FILENO);
+	int infd;
+	int outfd;
+
+	if (c->infile)
+		if ((infd = open(c->infile, O_RDONLY)) < 0)
+			throwErrorPerror("Could not open input file");
+	dup2(infd, STDIN_FILENO);
+	close(infd);
+
+	if (c->outfile) {
+		if ((outfd = open(c->outfile,
+						  O_WRONLY | O_CREAT | (c->append ? O_APPEND : O_TRUNC),
+						  0640)) < 0)
+			throwErrorPerror("Could not open output file");
+		dup2(outfd, STDOUT_FILENO);
+		close(outfd);
+	}
+
 	struct builtin *command = builtinCommands;
 	for (int i = 0; command->name[0] != 0; command++, i++)
 		if (strcmp(command->name, c->name) == 0) {
 			if (parseBuiltin(command, c))
-				return;
+				break;
 			(*command->function)(c);
-			return;
 		}
-	execute(c);
+	dup2(origstdin, STDIN_FILENO);
+	close(origstdin);
+	dup2(origstdout, STDOUT_FILENO);
+	close(origstdout);
 }
 
 void ls(Command *c) {
