@@ -68,6 +68,14 @@ char *getPrediction(char *directory, char *name) {
 		return NULL;
 	}
 	int len = strlen(namelist[idx % n]->d_name);
+	if (n > 0) {
+		printf("\n");
+		for (int i = 0; i < n; i++) {
+			printf("%s\t", namelist[i]->d_name);
+		}
+		printf("\n");
+	}
+
 	char *iname = checkAlloc(calloc(len + 20, sizeof *iname));
 	strcpy(iname, namelist[idx % n]->d_name);
 
