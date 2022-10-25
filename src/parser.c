@@ -19,7 +19,7 @@
 void parseLine(const char *line) {
 	char *saveptr;
 	char *linecopy = strdup(line);
-	appendHistory(linecopy);
+	// appendHistory(linecopy);
 	char *command;
 	command = strtok_r(linecopy, ";&\n", &saveptr);
 	while (command) {

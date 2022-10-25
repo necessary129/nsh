@@ -9,8 +9,14 @@
 
 void appendHistory(char *s) {
 	if (s[0] == '\n' || (shellState.history->end &&
-						 strcmp(shellState.history->end->data, s) == 0))
+						 strcmp(shellState.history->end->data, s) == 0)) {
+		// printf("nope: %s %s\n", shellState.history->end->data, s);
+
 		return;
+	}
+	// if (shellState.history->end)
+	// 	printf("yup: 1: %s 2: '%s'\n", shellState.history->end->data, s);
+
 	sdAppendElement(shellState.history, s);
 	while (shellState.history->size > 20) {
 		sdDeleteElement(shellState.history, shellState.history->start);
